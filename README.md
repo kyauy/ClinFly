@@ -10,6 +10,10 @@ Moreover, in a world mainly composed of non-English speakers, most tools used fo
 
 To leverage PM accessibility and data sharing, we developped an automated framework to anonymize, translate and summarize French-to-English clinical reports using Human Phenotype Ontology (HPO) terms which is compliant with medical standards of data privacy.
 
+## Pipeline 
+
+![](img/pipeline.png)
+
 ## Run the framework
 
-The framework is WIP, but a first version is accessible at [https://colab.research.google.com/drive/1JWqzdmUMJI_IzM4qKw_FwmbaIuq9kRij?usp=sharing](https://colab.research.google.com/drive/1JWqzdmUMJI_IzM4qKw_FwmbaIuq9kRij?usp=sharing)
+The framework is WIP, but a stand-alone version is accessible at [https://colab.research.google.com/drive/1JWqzdmUMJI_IzM4qKw_FwmbaIuq9kRij?usp=sharing](https://colab.research.google.com/drive/1JWqzdmUMJI_IzM4qKw_FwmbaIuq9kRij?usp=sharing)
