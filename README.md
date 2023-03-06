@@ -3,12 +3,15 @@
 ![](img/logo_300x.png)
 
 
+Contact : [kevin.yauy@chu-montpellier.fr](mailto:kevin.yauy@chu-montpellier.fr)
+
 ## Introduction
 
-A key challenge in precision medicine (PM) is to share clinical information between hospitals, especially using different languages.  
-Moreover, in a world mainly composed of non-English speakers, most tools used for PM and genome sequencing analysis are only English-compatible. 
+Precision medicine (PM) for rare diseases requires both precision phenotyping and data sharing. However, the majority of digital phenotyping tools only deal with the English language. 
 
-To leverage PM accessibility and data sharing, we developped an automated framework to anonymize, translate and summarize French-to-English clinical reports using Human Phenotype Ontology (HPO) terms which is compliant with medical standards of data privacy.
+Using French as a proof of concept, we have developed Linguo Franca, an automated framework to anonymize, translate and summarize clinical reports using Human Phenotype Ontology (HPO) terms compliant with medical data privacy standards. The output consists of a de-identified translated clinical report and a summary report in HPO format. 
+
+By facilitating the translation and anonymization of clinical reports, Linguo Franca has the potential to facilitate inter-hospital data sharing, accelerate medical discoveries and open up the possibility of an international patient file without limitations due to non-English speakers.
 
 ## Pipeline 
 
@@ -16,4 +19,12 @@ To leverage PM accessibility and data sharing, we developped an automated framew
 
 ## Run the framework
 
-The framework is WIP, but a stand-alone version is accessible at [https://colab.research.google.com/drive/1JWqzdmUMJI_IzM4qKw_FwmbaIuq9kRij?usp=sharing](https://colab.research.google.com/drive/1JWqzdmUMJI_IzM4qKw_FwmbaIuq9kRij?usp=sharing)
+A webapp is accessible at [https://linguo.streamlit.app/](https://linguo.streamlit.app/), **please try it !**
+
+It's a streamlit application, where code is accessible in ̀ lf_app.py` file. 
+
+To make it work in your local computer:
+```
+poetry shell
+streamlit run lf_app.py
+```
