@@ -57,6 +57,7 @@ def get_models():
     nltk.download("omw-1.4")
     nltk.download('wordnet')
     stanza.download("fr")
+    #stanza.download("en")
     spacy_model_name = "en_core_web_lg"
     if not spacy.util.is_package(spacy_model_name):
         spacy.cli.download(spacy_model_name)
@@ -102,10 +103,14 @@ def config_deidentify():
 
 @st.cache_resource()
 def get_nlp_marian():
-    nlp = stanza.Pipeline("fr", processors="tokenize")
+    nlp_fr = stanza.Pipeline("fr", processors="tokenize")
     marian_fr_en = Translator("fr", "en")
-    return nlp, marian_fr_en
+    return nlp_fr, marian_fr_en
 
+#@st.cache_resource()
+#def get_nlp_en():
+#    nlp_en = stanza.Pipeline("en", processors="tokenize")
+#    return nlp_en
 
 @dataclass(frozen=True)
 class SentenceBoundary:
@@ -261,7 +266,7 @@ def anonymize_analyzer(MarianText_letter, _analyzer, nom_propre):
 
 
 @st.cache_data()
-def anonymize_engine(MarianText_letter, _analyzer_results_return, _engine):
+def anonymize_engine(MarianText_letter, _analyzer_results_return, _engine, _nlp):
     result = _engine.anonymize(
         text=MarianText_letter,
         analyzer_results=_analyzer_results_return,
@@ -270,14 +275,14 @@ def anonymize_engine(MarianText_letter, _analyzer_results_return, _engine):
             "LOCATION": OperatorConfig("replace", {"new_value": ""}),
         },
     )
-    return reformat_to_letter(result.text, nlp)
+    return reformat_to_letter(result.text, _nlp)
 
 
 @st.cache_data()
-def add_space_to_comma(texte):
+def add_space_to_comma(texte, _nlp):
     text_list = []
     regex = "(?<!\d)(\,)(?!\d)(?!.*\1)"
-    for sentence in nlp.process(texte).sentences:
+    for sentence in _nlp.process(texte).sentences:
         text_space = re.sub(regex, " , ", sentence.text.replace("\n", " "))
         text_space_no_db = text_space.replace("  ", " ")
         text_list.append(text_space_no_db)
@@ -286,10 +291,10 @@ def add_space_to_comma(texte):
 
 
 @st.cache_data()
-def add_space_to_endpoint(texte):
+def add_space_to_endpoint(texte, _nlp):
     text_list = []
     regex = "(?<!\d)(\.)(?!\d)(?!.*\1)"
-    for sentence in nlp.process(texte).sentences:
+    for sentence in _nlp.process(texte).sentences:
         text_space = re.sub(regex, " . ", sentence.text.replace("\n", " "))
         text_space_no_db = text_space.replace("  ", " ")
         text_list.append(text_space_no_db)
@@ -298,10 +303,10 @@ def add_space_to_endpoint(texte):
 
 
 @st.cache_data()
-def add_space_to_leftp(texte):
+def add_space_to_leftp(texte, _nlp):
     text_list = []
     regex = "(?<!\d)(\()(?!\d)(?!.*\1)"
-    for sentence in nlp.process(texte).sentences:
+    for sentence in _nlp.process(texte).sentences:
         text_space = re.sub(regex, " ( ", sentence.text.replace("\n", " "))
         text_space_no_db = text_space.replace("  ", " ")
         text_list.append(text_space_no_db)
@@ -310,10 +315,10 @@ def add_space_to_leftp(texte):
 
 
 @st.cache_data()
-def add_space_to_rightp(texte):
+def add_space_to_rightp(texte, _nlp):
     text_list = []
     regex = "(?<!\d)(\))(?!\d)(?!.*\1)"
-    for sentence in nlp.process(texte).sentences:
+    for sentence in _nlp.process(texte).sentences:
         text_space = re.sub(regex, " ) ", sentence.text.replace("\n", " "))
         text_space_no_db = text_space.replace("  ", " ")
         text_list.append(text_space_no_db)
@@ -322,10 +327,10 @@ def add_space_to_rightp(texte):
 
 
 @st.cache_data()
-def add_space_to_stroph(texte):
+def add_space_to_stroph(texte, _nlp):
     text_list = []
     regex = "(?<!\d)(')(?!\d)(?!.*\1)"
-    for sentence in nlp.process(texte).sentences:
+    for sentence in _nlp.process(texte).sentences:
         text_space = re.sub(regex, " ' ", sentence.text.replace("\n", " "))
         text_space_no_db = text_space.replace("  ", " ")
         text_list.append(text_space_no_db)
@@ -334,12 +339,12 @@ def add_space_to_stroph(texte):
 
 
 @st.cache_data()
-def add_space_to_comma_endpoint(texte):
-    text_fr_comma = add_space_to_comma(texte)
-    text_fr_comma_endpoint = add_space_to_endpoint(text_fr_comma)
-    text_fr_comma_endpoint_leftpc = add_space_to_leftp(text_fr_comma_endpoint)
+def add_space_to_comma_endpoint(texte, _nlp):
+    text_fr_comma = add_space_to_comma(texte,_nlp)
+    text_fr_comma_endpoint = add_space_to_endpoint(text_fr_comma, _nlp)
+    text_fr_comma_endpoint_leftpc = add_space_to_leftp(text_fr_comma_endpoint, _nlp)
     text_fr_comma_endpoint_leftpc_right_pc = add_space_to_rightp(
-        text_fr_comma_endpoint_leftpc
+        text_fr_comma_endpoint_leftpc, _nlp
     )
     # text_fr_comma_endpoint_leftpc_right_pc_stroph = add_space_to_stroph(
     #    text_fr_comma_endpoint_leftpc_right_pc
@@ -431,10 +436,10 @@ def correct_marian(MarianText_space, dict_correction):
 
 @st.cache_data()
 def translate_letter(courrier, nom, prenom, _nlp, _marian_fr_en, dict_correction):
-    courrier_space = add_space_to_comma_endpoint(courrier)
+    courrier_space = add_space_to_comma_endpoint(courrier, _nlp)
     courrier_name = change_name_patient(courrier_space, nom, prenom)
     MarianText_raw = translate_marian(courrier_name, _nlp, _marian_fr_en)
-    MarianText_space = add_space_to_comma_endpoint(MarianText_raw)
+    MarianText_space = add_space_to_comma_endpoint(MarianText_raw, _nlp)
     MarianText, list_replaced = correct_marian(MarianText_space, dict_correction)
     return MarianText, list_replaced
 
@@ -575,7 +580,8 @@ def main_function(inputStr):
   return returnDf
 
 models_status = get_models()
-nlp, marian_fr_en = get_nlp_marian()
+nlp_fr, marian_fr_en = get_nlp_marian()
+#nlp_en = get_nlp_en()
 dict_correction = get_translation_dict_correction()
 nom_propre = get_list_not_deidentify()
 analyzer, engine = config_deidentify()
@@ -601,9 +607,9 @@ with st.form("my_form"):
 if submit_button or st.session_state.load_state:
     st.session_state.load_state = True
     MarianText, list_replaced = translate_letter(
-        courrier, nom, prenom, nlp, marian_fr_en, dict_correction
+        courrier, nom, prenom, nlp_fr, marian_fr_en, dict_correction
     )
-    MarianText_letter = reformat_to_letter(MarianText, nlp)
+    MarianText_letter = reformat_to_letter(MarianText, nlp_fr)
 
     st.subheader("Translation and De-identification")
     (
@@ -623,7 +629,7 @@ if submit_button or st.session_state.load_state:
     st.caption(MarianText_anonymize_letter_analyze)
 
     MarianText_anonymize_letter_engine = anonymize_engine(
-        MarianText_letter, analyzer_results_return, engine
+        MarianText_letter, analyzer_results_return, engine, nlp_fr
     )
 
     MarianText_anonymize_letter_engine_modif = pd.DataFrame(
@@ -652,10 +658,10 @@ if submit_button or st.session_state.load_state:
     st.subheader("Summarization")
 
     MarianText_anonymized_reformat_space = add_space_to_comma_endpoint(
-        MarianText_anonymize_letter_engine
+        MarianText_anonymize_letter_engine, nlp_fr
     )
     MarianText_anonymized_reformat_biometrics, additional_terms = add_biometrics(
-        MarianText_anonymized_reformat_space, nlp
+        MarianText_anonymized_reformat_space, nlp_fr
     )
 
     with st.expander("See additional terms extracted with biometrics analysis"):
