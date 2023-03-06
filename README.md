@@ -21,9 +21,14 @@ By facilitating the translation and anonymization of clinical reports, Linguo Fr
 
 A webapp is accessible at [https://linguo.streamlit.app/](https://linguo.streamlit.app/), **please try it !**
 
-It's a streamlit application, where code is accessible in ̀ lf_app.py` file. 
+It's a streamlit application, where code is accessible in ̀`lf_app.py` file. 
 
-To make it work in your local computer:
+To install on your local machine, you need `poetry` package manager and launch in the folder:
+```
+poetry install
+```
+
+To make it run in your local computer:
 ```
 poetry shell
 streamlit run lf_app.py
