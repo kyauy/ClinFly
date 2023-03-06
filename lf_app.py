@@ -16,6 +16,8 @@ from presidio_analyzer.nlp_engine import NlpEngineProvider
 from presidio_anonymizer import AnonymizerEngine
 from presidio_anonymizer.entities import RecognizerResult, OperatorConfig
 import subprocess
+from clinphen_src import get_phenotypes_lf
+
 
 # -- Set page config
 apptitle = "Linguo Franca"
@@ -33,6 +35,8 @@ st.sidebar.header(
 
 st.sidebar.markdown(
     """
+ Currently only working from :fr: to :gb:.  
+
  If any questions or suggestions, please contact: [kevin.yauy@chu-montpellier.fr](kevin.yauy@chu-montpellier.fr) and [lucas.gauthier@chu-lyon.fr](lucas.gauthier@chu-lyon.fr) 
 
  Code source is available in GitHub:
@@ -51,6 +55,7 @@ st.sidebar.image(image_chu, caption=None, width=95)
 @st.cache_resource()
 def get_models():
     nltk.download("omw-1.4")
+    nltk.download('wordnet')
     stanza.download("fr")
     spacy_model_name = "en_core_web_lg"
     if not spacy.util.is_package(spacy_model_name):
@@ -450,19 +455,19 @@ def reformat_to_letter(text, _nlp):
 
 @st.cache_data()
 def convert_df(df):
-    return df.to_csv(sep="\t").encode("utf-8")
+    return df.to_csv(sep="\t", index=False, header=None).encode("utf-8")
 
 
 @st.cache_data()
 def add_biometrics(text, _nlp):
     cutsentence_with_biometrics = []
     cutsentence = []
+    additional_terms = []
     for sentence in _nlp.process(text).sentences:
         cutsentence.append(sentence.text)
     keep_element = ["cm", "kg", "qit", "qi"]
     for sentence in cutsentence:
         if any(ext in sentence.lower() for ext in keep_element):
-            additional_terms = []
             if "SD" in sentence or "DS" in sentence:
                 sentence = sentence.replace("DS", "SD")
                 try:
@@ -546,7 +551,28 @@ def add_biometrics(text, _nlp):
         i for i in cutsentence_with_biometrics if i != "."
     ]
     return " ".join(cutsentence_with_biometrics_return), additional_terms
-
+@st.cache_data()
+def main_function(inputStr):
+  hpo_to_name = get_phenotypes_lf.getNames()
+  returnString = get_phenotypes_lf.extract_phenotypes(inputStr, hpo_to_name)
+  returnList = []
+  i = 0
+  for element in returnString.split('\n'):
+    if i == 0:
+      i = 1
+      pass
+    else:
+      elementList = []
+      for i in element.split('\t'):
+        elementList.append(i)
+      returnList.append(elementList)
+  if len(returnList) > 0:
+    returnDf = pd.DataFrame(returnList)
+    returnDf.columns = ['HPO ID', 'Phenotype name', 'No. occurrences', 'Earliness (lower = earlier)', 'Example sentence']
+  else:
+    returnDf = pd.DataFrame(columns=['HPO ID', 'Phenotype name', 'No. occurrences', 'Earliness (lower = earlier)', 'Example sentence'])
+    return returnDf 
+  return returnDf
 
 models_status = get_models()
 nlp, marian_fr_en = get_nlp_marian()
@@ -635,19 +661,7 @@ if submit_button or st.session_state.load_state:
     with st.expander("See additional terms extracted with biometrics analysis"):
         st.write(additional_terms)
 
-    with open("sample_translated_deindentified_biometrics.txt", "w") as f:
-        f.write(MarianText_anonymized_reformat_biometrics)
-
-    with open("extract_clinphen_patient.tsv", "w") as outfile:
-        subprocess.run(
-            [
-                "clinphen",
-                "sample_translated_deindentified_biometrics.txt",
-            ],
-            stdout=outfile,
-        )
-
-    clinphen = pd.read_csv("extract_clinphen_patient.tsv", sep="\t")
+    clinphen = main_function(MarianText_anonymized_reformat_biometrics)
 
     clinphen_df = st.experimental_data_editor(
         clinphen, num_rows="dynamic", key="data_editor"
