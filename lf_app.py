@@ -80,6 +80,7 @@ def get_list_not_deidentify():
         "chere",
         "CAS",
         "INDEX",
+        "APGAR",
     ]
     nom_propre = [x.lower() for x in nom_propre_list]
     return nom_propre
@@ -217,7 +218,7 @@ class Translator:
         return [str(text.map(translations)) for text in text_sentences]
 
 
-@st.cache_data()
+@st.cache_data(max_entries=30)
 def anonymize_analyzer(MarianText_letter, _analyzer, nom_propre):
     MarianText_anonymize_letter = MarianText_letter
     # st.write(MarianText_anonymize_letter)
@@ -265,7 +266,7 @@ def anonymize_analyzer(MarianText_letter, _analyzer, nom_propre):
     )
 
 
-@st.cache_data()
+@st.cache_data(max_entries=30)
 def anonymize_engine(MarianText_letter, _analyzer_results_return, _engine, _nlp):
     result = _engine.anonymize(
         text=MarianText_letter,
@@ -278,7 +279,7 @@ def anonymize_engine(MarianText_letter, _analyzer_results_return, _engine, _nlp)
     return reformat_to_letter(result.text, _nlp)
 
 
-@st.cache_data()
+@st.cache_data(max_entries=60)
 def add_space_to_comma(texte, _nlp):
     text_list = []
     regex = "(?<!\d)(\,)(?!\d)(?!.*\1)"
@@ -290,7 +291,7 @@ def add_space_to_comma(texte, _nlp):
     return " ".join(text_list)
 
 
-@st.cache_data()
+@st.cache_data(max_entries=60)
 def add_space_to_endpoint(texte, _nlp):
     text_list = []
     regex = "(?<!\d)(\.)(?!\d)(?!.*\1)"
@@ -302,7 +303,7 @@ def add_space_to_endpoint(texte, _nlp):
     return " ".join(text_list)
 
 
-@st.cache_data()
+@st.cache_data(max_entries=60)
 def add_space_to_leftp(texte, _nlp):
     text_list = []
     regex = "(?<!\d)(\()(?!\d)(?!.*\1)"
@@ -314,7 +315,7 @@ def add_space_to_leftp(texte, _nlp):
     return " ".join(text_list)
 
 
-@st.cache_data()
+@st.cache_data(max_entries=60)
 def add_space_to_rightp(texte, _nlp):
     text_list = []
     regex = "(?<!\d)(\))(?!\d)(?!.*\1)"
@@ -326,7 +327,7 @@ def add_space_to_rightp(texte, _nlp):
     return " ".join(text_list)
 
 
-@st.cache_data()
+@st.cache_data(max_entries=60)
 def add_space_to_stroph(texte, _nlp):
     text_list = []
     regex = "(?<!\d)(')(?!\d)(?!.*\1)"
@@ -338,7 +339,7 @@ def add_space_to_stroph(texte, _nlp):
     return " ".join(text_list)
 
 
-@st.cache_data()
+@st.cache_data(max_entries=60)
 def add_space_to_comma_endpoint(texte, _nlp):
     text_fr_comma = add_space_to_comma(texte,_nlp)
     text_fr_comma_endpoint = add_space_to_endpoint(text_fr_comma, _nlp)
@@ -394,7 +395,7 @@ def get_translation_dict_correction():
     return dict_correction
 
 
-@st.cache_resource()
+@st.cache_resource(max_entries=30)
 def change_name_patient(courrier, nom, prenom):
     courrier_name = courrier
     dict_correction_name = {
@@ -412,7 +413,7 @@ def change_name_patient(courrier, nom, prenom):
     return courrier_name
 
 
-@st.cache_resource()
+@st.cache_resource(max_entries=30)
 def translate_marian(courrier_name, _nlp, _marian_fr_en):
     list_of_sentence = []
     for sentence in _nlp.process(courrier_name).sentences:
@@ -421,7 +422,7 @@ def translate_marian(courrier_name, _nlp, _marian_fr_en):
     return MarianText_raw
 
 
-@st.cache_resource()
+@st.cache_resource(max_entries=30)
 def correct_marian(MarianText_space, dict_correction):
     MarianText = MarianText_space
     list_replaced = []
@@ -434,7 +435,7 @@ def correct_marian(MarianText_space, dict_correction):
     return MarianText, list_replaced
 
 
-@st.cache_data()
+@st.cache_data(max_entries=30)
 def translate_letter(courrier, nom, prenom, _nlp, _marian_fr_en, dict_correction):
     courrier_space = add_space_to_comma_endpoint(courrier, _nlp)
     courrier_name = change_name_patient(courrier_space, nom, prenom)
@@ -444,7 +445,7 @@ def translate_letter(courrier, nom, prenom, _nlp, _marian_fr_en, dict_correction
     return MarianText, list_replaced
 
 
-@st.cache_data()
+@st.cache_data(max_entries=60)
 def reformat_to_letter(text, _nlp):
     cutsentence = []
     for sentence in _nlp.process(text).sentences:
@@ -458,12 +459,12 @@ def reformat_to_letter(text, _nlp):
     return "  \n".join(cutsentence)
 
 
-@st.cache_data()
+@st.cache_data(max_entries=60)
 def convert_df(df):
     return df.to_csv(sep="\t", index=False, header=None).encode("utf-8")
 
 
-@st.cache_data()
+@st.cache_data(max_entries=30)
 def add_biometrics(text, _nlp):
     cutsentence_with_biometrics = []
     cutsentence = []
@@ -556,28 +557,13 @@ def add_biometrics(text, _nlp):
         i for i in cutsentence_with_biometrics if i != "."
     ]
     return " ".join(cutsentence_with_biometrics_return), additional_terms
-@st.cache_data()
+@st.cache_data(max_entries=30)
 def main_function(inputStr):
   hpo_to_name = get_phenotypes_lf.getNames()
-  returnString = get_phenotypes_lf.extract_phenotypes(inputStr, hpo_to_name)
-  returnList = []
-  i = 0
-  for element in returnString.split('\n'):
-    if i == 0:
-      i = 1
-      pass
-    else:
-      elementList = []
-      for i in element.split('\t'):
-        elementList.append(i)
-      returnList.append(elementList)
-  if len(returnList) > 0:
-    returnDf = pd.DataFrame(returnList)
-    returnDf.columns = ['HPO ID', 'Phenotype name', 'No. occurrences', 'Earliness (lower = earlier)', 'Example sentence']
-  else:
-    returnDf = pd.DataFrame(columns=['HPO ID', 'Phenotype name', 'No. occurrences', 'Earliness (lower = earlier)', 'Example sentence'])
-    return returnDf 
-  return returnDf
+  returnString, returnStringUnsafe = get_phenotypes_lf.extract_phenotypes(inputStr, hpo_to_name)
+  returnDf = get_phenotypes_lf.get_dataframe_from_clinphen(returnString)
+  returnDfUnsafe = get_phenotypes_lf.get_dataframe_from_clinphen(returnStringUnsafe)
+  return returnDf, returnDfUnsafe
 
 models_status = get_models()
 nlp_fr, marian_fr_en = get_nlp_marian()
@@ -596,7 +582,7 @@ with st.form("my_form"):
     with c2:
         prenom = st.text_input("Prénom du patient", "John", key="surname")
     courrier = st.text_area(
-        "Courrier à coller", "Chers collegues, ...", height=200, key="letter"
+        "Courrier à coller", "Chers collegues, j'ai recu en consultation M. John Doe né le 14/07/1789 pour une fièvre récurrente et une maladie de Crohn. Il a pour antécédent des epistaxis recurrents. Parmi les antécédants familiaux, sa maman a présenté un cancer des ovaires. Il mesure 1.90 m (+2.5  DS),  pèse 93 kg (+3.6 DS) et son PC est à 57 cm (+0DS) ...", height=200, key="letter"
     )
 
     submit_button = st.form_submit_button(
@@ -663,11 +649,13 @@ if submit_button or st.session_state.load_state:
     MarianText_anonymized_reformat_biometrics, additional_terms = add_biometrics(
         MarianText_anonymized_reformat_space, nlp_fr
     )
+    clinphen, clinphen_unsafe = main_function(MarianText_anonymized_reformat_biometrics)
 
     with st.expander("See additional terms extracted with biometrics analysis"):
         st.write(additional_terms)
 
-    clinphen = main_function(MarianText_anonymized_reformat_biometrics)
+    with st.expander("See unsafe extracted terms"):
+        st.write(clinphen_unsafe)
 
     clinphen_df = st.experimental_data_editor(
         clinphen, num_rows="dynamic", key="data_editor"

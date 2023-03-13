@@ -1,5 +1,6 @@
 from collections import defaultdict
 from nltk.stem import WordNetLemmatizer
+import pandas as pd
 import re
 
 HPO_SYN_MAP_FILE = "clinphen_src/data/hpo_synonyms.txt"
@@ -206,6 +207,7 @@ def sort_ids_by_occurrences_then_earliness(id_to_lines):
 
 def extract_phenotypes(record, names, hpo_syn_file=HPO_SYN_MAP_FILE):
   safe_ID_to_lines = defaultdict(set)
+  unsafe_ID_to_lines = defaultdict(set)
   medical_record = load_medical_record_subsentences(record)
   medical_record_subsentences = []
   medical_record_words = []
@@ -222,7 +224,14 @@ def extract_phenotypes(record, names, hpo_syn_file=HPO_SYN_MAP_FILE):
       subsent_to_sentence.append(whole_sentence)
       medical_record_words.append(add_lemmas(alphanum_only(set([subsent]))))
       medical_record_flags.append(flags)
+  #print(medical_record_subsentences)
+  #print(subsent_to_sentence)
+  #print(medical_record_words)
+  #print(medical_record_flags)
+
   mr_map = load_mr_map(medical_record_words)
+  #print(mr_map)
+
   syns = load_all_hpo_synonyms(hpo_syn_file)
   for hpoID in syns.keys():
     for syn in syns[hpoID]:
@@ -238,14 +247,42 @@ def extract_phenotypes(record, names, hpo_syn_file=HPO_SYN_MAP_FILE):
       for i in lines:
         line = " ".join(medical_record_words[i])
         flagged = False
-        for flag in medical_record_flags[i]:
-          if flag not in synTokens:
-            flagged = True
-            break
-        if flagged: continue
-        safe_ID_to_lines[hpoID].add(i)
+        if i < 4:
+          #print(lines)
+          #print(i)
+          safe_ID_to_lines[hpoID].add(i)
+        else:
+          #print(hpoID)
+          for flag in medical_record_flags[i]:
+            if flag not in synTokens:
+              flagged = True
+              unsafe_ID_to_lines[hpoID].add(i)
+              break
+          if flagged: continue
+          safe_ID_to_lines[hpoID].add(i)
   safe_IDs = sort_ids_by_occurrences_then_earliness(safe_ID_to_lines)
+  unsafe_IDs = sort_ids_by_occurrences_then_earliness(unsafe_ID_to_lines)
   returnString = ["HPO ID\tPhenotype name\tNo. occurrences\tEarliness (lower = earlier)\tExample sentence"]
-  #returnString = []
+  returnStringUnSafe = ["HPO ID\tPhenotype name\tNo. occurrences\tEarliness (lower = earlier)\tExample sentence"]
   for ID in safe_IDs: returnString.append("\t".join([ID, names[ID], str(len(safe_ID_to_lines[ID])), str(min(safe_ID_to_lines[ID])), subsent_to_sentence[safe_ID_to_lines[ID].pop()]]))
-  return "\n".join(returnString)
+  for ID in unsafe_IDs: returnStringUnSafe.append("\t".join([ID, names[ID], str(len(unsafe_ID_to_lines[ID])), str(min(unsafe_ID_to_lines[ID])), subsent_to_sentence[unsafe_ID_to_lines[ID].pop()]]))
+  return "\n".join(returnString), "\n".join(returnStringUnSafe)
+
+def get_dataframe_from_clinphen(returnString):
+  i = 0
+  returnList = []
+  for element in returnString.split('\n'):
+    if i == 0:
+      i = 1
+      pass
+    else:
+      elementList = []
+      for i in element.split('\t'):
+        elementList.append(i)
+      returnList.append(elementList)
+  if len(returnList) > 0:
+    returnDf = pd.DataFrame(returnList)
+    returnDf.columns = ['HPO ID', 'Phenotype name', 'No. occurrences', 'Earliness (lower = earlier)', 'Example sentence']
+  else:
+    returnDf = pd.DataFrame(columns=['HPO ID', 'Phenotype name', 'No. occurrences', 'Earliness (lower = earlier)', 'Example sentence'])
+  return returnDf 
