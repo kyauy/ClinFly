@@ -81,6 +81,11 @@ def get_list_not_deidentify():
         "CAS",
         "INDEX",
         "APGAR",
+        "M",
+        "Ms",
+        "Mr",
+        "Behçet",
+        "hypoacousia",
     ]
     nom_propre = [x.lower() for x in nom_propre_list]
     return nom_propre
@@ -463,6 +468,16 @@ def reformat_to_letter(text, _nlp):
 def convert_df(df):
     return df.to_csv(sep="\t", index=False, header=None).encode("utf-8")
 
+@st.cache_data(max_entries=60)
+def convert_json(df):
+    dict_return = {"features":[]}
+    if len(df) > 0:
+        df_dict_list = df[['HPO ID', 'Phenotype name']].to_dict(orient='index')
+        for key, value in df_dict_list.items():
+            dict_return['features'].append({'id': value['HPO ID'], 'observed': 'yes', 'label': value['Phenotype name'], 'type': "phenotype"})
+        return json.dumps(dict_return)
+    else:
+        return None
 
 @st.cache_data(max_entries=30)
 def add_biometrics(text, _nlp):
@@ -666,7 +681,15 @@ if submit_button or st.session_state.load_state:
     st.download_button(
         "Download summarized letter in HPO format",
         convert_df(clinphen_df),
-        "translated_and_deindentified_letter.tsv",
+        "summarized_letter.tsv",
         "text/csv",
         key="download-summarization",
+    )
+
+    st.download_button(
+        "Download summarized letter in Phenotips JSON format",
+        convert_json(clinphen_df),
+        "summarized_letter.json",
+        "json",
+        key="download-summarization-json",
     )
