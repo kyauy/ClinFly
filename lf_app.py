@@ -357,6 +357,14 @@ def add_space_to_comma_endpoint(texte, _nlp):
     # )
     return text_fr_comma_endpoint_leftpc_right_pc
 
+@st.cache_data()
+def get_abbreviation_dict_correction():
+    dict_correction = {}
+    with open("data/fr_abbreviations.json", "r") as outfile:
+        hpo_abbreviations = json.load(outfile)
+    for key, value in hpo_abbreviations.items():
+        dict_correction[" " + key + " "] = " " + value + " "
+    return dict_correction
 
 @st.cache_data()
 def get_translation_dict_correction():
@@ -397,13 +405,19 @@ def get_translation_dict_correction():
 
     for key, value in hpo_translated.items():
         dict_correction[" " + key + " "] = " " + value + " "
+
+    with open("data/fr_abbreviations_translation.json", "r") as outfile:
+        hpo_translated_abbreviations = json.load(outfile)
+
+    for key, value in hpo_translated_abbreviations.items():
+        dict_correction[" " + key + " "] = " " + value + " "
     return dict_correction
 
 
 @st.cache_resource(max_entries=30)
-def change_name_patient(courrier, nom, prenom):
+def change_name_patient_abbreviations(courrier, nom, prenom, abbreviations_dict):
     courrier_name = courrier
-    dict_correction_name = {
+    dict_correction_name_abbreviations = {
         " " + prenom + " ": " CAS ",
         " " + nom + " ": " INDEX ",
         # " " + nom_maternel + " ": " INDEX ",
@@ -412,10 +426,20 @@ def change_name_patient(courrier, nom, prenom):
         " Dr ": " Docteur ",
         " Pr .": " Professeur ",
         " Pr ": " Professeur ",
-    }
-    for key, value in dict_correction_name.items():
-        courrier_name = courrier_name.replace(key, value)
-    return courrier_name
+    } 
+    with open("data/fr_abbreviations.json", "r") as outfile:
+        fr_abbreviations = json.load(outfile)
+    for key, value in fr_abbreviations.items():
+        dict_correction_name_abbreviations[" " + key + " "] = " " + value + " "
+
+    list_replaced = []
+    for key, value in dict_correction_name_abbreviations.items():
+        if key in courrier_name:
+            list_replaced.append(
+                'Abbreviation or patient name ' + key + ' replaced by ' + value
+            )
+            courrier_name = courrier_name.replace(key, value)
+    return courrier_name, list_replaced
 
 
 @st.cache_resource(max_entries=30)
@@ -441,13 +465,13 @@ def correct_marian(MarianText_space, dict_correction):
 
 
 @st.cache_data(max_entries=30)
-def translate_letter(courrier, nom, prenom, _nlp, _marian_fr_en, dict_correction):
+def translate_letter(courrier, nom, prenom, _nlp, _marian_fr_en, dict_correction, abbreviation_dict):
     courrier_space = add_space_to_comma_endpoint(courrier, _nlp)
-    courrier_name = change_name_patient(courrier_space, nom, prenom)
+    courrier_name, list_replaced_abb_name = change_name_patient_abbreviations(courrier_space, nom, prenom, abbreviation_dict)
     MarianText_raw = translate_marian(courrier_name, _nlp, _marian_fr_en)
     MarianText_space = add_space_to_comma_endpoint(MarianText_raw, _nlp)
     MarianText, list_replaced = correct_marian(MarianText_space, dict_correction)
-    return MarianText, list_replaced
+    return MarianText, list_replaced, list_replaced_abb_name
 
 
 @st.cache_data(max_entries=60)
@@ -584,6 +608,7 @@ models_status = get_models()
 nlp_fr, marian_fr_en = get_nlp_marian()
 #nlp_en = get_nlp_en()
 dict_correction = get_translation_dict_correction()
+dict_abbreviation_correction = get_abbreviation_dict_correction()
 nom_propre = get_list_not_deidentify()
 analyzer, engine = config_deidentify()
 
@@ -607,8 +632,8 @@ with st.form("my_form"):
 
 if submit_button or st.session_state.load_state:
     st.session_state.load_state = True
-    MarianText, list_replaced = translate_letter(
-        courrier, nom, prenom, nlp_fr, marian_fr_en, dict_correction
+    MarianText, list_replaced, list_replaced_abb_name = translate_letter(
+        courrier, nom, prenom, nlp_fr, marian_fr_en, dict_correction, dict_abbreviation_correction
     )
     MarianText_letter = reformat_to_letter(MarianText, nlp_fr)
 
@@ -619,6 +644,8 @@ if submit_button or st.session_state.load_state:
         analyzer_results_keep,
         analyzer_results_saved,
     ) = anonymize_analyzer(MarianText_letter, analyzer, nom_propre)
+    with st.expander("See country abbreviation and name correction"):
+        st.write(list_replaced_abb_name)
     with st.expander("See country-specific correction"):
         st.write(list_replaced)
     with st.expander("See de-identified element"):
