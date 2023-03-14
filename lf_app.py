@@ -679,7 +679,7 @@ if submit_button or st.session_state.load_state:
     st.caption("Modify cells above 👆 or even ➕ add rows, before downloading 👇")
 
     st.download_button(
-        "Download summarized letter in HPO format",
+        "Download summarized letter in HPO CSV format",
         convert_df(clinphen_df),
         "summarized_letter.tsv",
         "text/csv",
