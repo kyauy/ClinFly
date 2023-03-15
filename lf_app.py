@@ -52,7 +52,7 @@ image_chu = Image.open("img/CHU-montpellier.png")
 st.sidebar.image(image_chu, caption=None, width=95)
 
 
-@st.cache_resource()
+@st.cache_resource(max_entries=30)
 def get_models():
     nltk.download("omw-1.4")
     nltk.download('wordnet')
@@ -66,7 +66,7 @@ def get_models():
     return "Done"
 
 
-@st.cache_data()
+@st.cache_data(max_entries=30)
 def get_list_not_deidentify():
     nom_propre_data = pd.read_csv(
         "data/exception_list_anonymization.tsv", sep="\t", header=None
@@ -91,7 +91,7 @@ def get_list_not_deidentify():
     return nom_propre
 
 
-@st.cache_resource()
+@st.cache_resource(max_entries=30)
 def config_deidentify():
     configuration = {
         "nlp_engine_name": "spacy",
@@ -107,7 +107,7 @@ def config_deidentify():
     return analyzer, engine
 
 
-@st.cache_resource()
+@st.cache_resource(max_entries=30)
 def get_nlp_marian():
     nlp_fr = stanza.Pipeline("fr", processors="tokenize")
     marian_fr_en = Translator("fr", "en")
@@ -357,7 +357,7 @@ def add_space_to_comma_endpoint(texte, _nlp):
     # )
     return text_fr_comma_endpoint_leftpc_right_pc
 
-@st.cache_data()
+@st.cache_data(max_entries=30)
 def get_abbreviation_dict_correction():
     dict_correction = {}
     with open("data/fr_abbreviations.json", "r") as outfile:
@@ -366,7 +366,7 @@ def get_abbreviation_dict_correction():
         dict_correction[" " + key + " "] = " " + value + " "
     return dict_correction
 
-@st.cache_data()
+@st.cache_data(max_entries=30)
 def get_translation_dict_correction():
     dict_correction_FRspec = {
         "PC": "head circumference",
