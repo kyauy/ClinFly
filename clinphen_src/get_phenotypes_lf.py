@@ -251,8 +251,9 @@ def extract_phenotypes(record, names, hpo_syn_file=HPO_SYN_MAP_FILE):
           #print(lines)
           #print(i)
           safe_ID_to_lines[hpoID].add(i)
+        elif "inherited" in line: 
+            safe_ID_to_lines[hpoID].add(i)
         else:
-          #print(hpoID)
           for flag in medical_record_flags[i]:
             if flag not in synTokens:
               flagged = True
