@@ -565,6 +565,11 @@ def reformat_to_letter(text, _nlp):
 
 @st.cache_data(max_entries=60)
 def convert_df(df):
+    return df.to_csv(sep="\t", index=False).encode("utf-8")
+
+
+@st.cache_data(max_entries=60)
+def convert_df_no_header(df):
     return df.to_csv(sep="\t", index=False, header=None).encode("utf-8")
 
 @st.cache_data(max_entries=60)
@@ -801,7 +806,7 @@ if submit_button or st.session_state.load_state:
 
     st.download_button(
         "Download translated and de-identified letter",
-        convert_df(MarianText_anonymize_letter_engine_df),
+        convert_df_no_header(MarianText_anonymize_letter_engine_df),
         nom + "_" + prenom + "_translated_and_deindentified_letter.txt",
         "text",
         key="download-translation-deindentification",
