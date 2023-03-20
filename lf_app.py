@@ -230,7 +230,7 @@ def anonymize_analyzer(MarianText_letter, _analyzer, nom_propre):
     analyzer_results_keep = []
     analyzer_results_return = []
     analyzer_results_saved = []
-    analyzer_results = _analyzer.analyze(text=MarianText_letter, language="en", entities=["DATE_TIME", "PERSON"])
+    analyzer_results = _analyzer.analyze(text=MarianText_letter, language="en", entities=["DATE_TIME", "PERSON"], allow_list=['evening', 'day', 'the day', 'the age of', 'age', 'years', 'years old', 'months', 'hours', 'night', 'noon'])
     len_to_add = 0
     analyser_results_to_sort = {}
     i = 0
@@ -244,24 +244,27 @@ def anonymize_analyzer(MarianText_letter, _analyzer, nom_propre):
     for element_raw in sorted_dict:
         element = analyzer_results[element_raw]
         word = MarianText_letter[element.start : element.end]
-        if word.lower().strip() in nom_propre:
-            word_to_replace = "**:green[" + word + "]** `[" + element.entity_type + "]`"
-            MarianText_anonymize_letter = (
-                MarianText_anonymize_letter[: element.start + len_to_add]
-                + word_to_replace
-                + MarianText_anonymize_letter[element.end + len_to_add :]
-            )
-            analyzer_results_saved.append(str(element) + ", word:" + word)
-        else:
-            word_to_replace = "**:red[" + word + "]** `[" + element.entity_type + "]`"
-            MarianText_anonymize_letter = (
-                MarianText_anonymize_letter[: element.start + len_to_add]
-                + word_to_replace
-                + MarianText_anonymize_letter[element.end + len_to_add :]
-            )
-            analyzer_results_keep.append(str(element) + ", word:" + word)
-            analyzer_results_return.append(element)
-        len_to_add = len_to_add + len(word_to_replace) - len(word)
+        exception_list_presidio = ['age', 'year', 'month']
+        exception_detected = [e for e in exception_list_presidio if e in word.lower()]
+        if len(exception_detected) == 0:
+            if word.lower().strip() in nom_propre:
+                word_to_replace = "**:green[" + word + "]** `[" + element.entity_type + "]`"
+                MarianText_anonymize_letter = (
+                    MarianText_anonymize_letter[: element.start + len_to_add]
+                    + word_to_replace
+                    + MarianText_anonymize_letter[element.end + len_to_add :]
+                )
+                analyzer_results_saved.append(str(element) + ", word:" + word)
+            else:
+                word_to_replace = "**:red[" + word + "]** `[" + element.entity_type + "]`"
+                MarianText_anonymize_letter = (
+                    MarianText_anonymize_letter[: element.start + len_to_add]
+                    + word_to_replace
+                    + MarianText_anonymize_letter[element.end + len_to_add :]
+                )
+                analyzer_results_keep.append(str(element) + ", word:" + word)
+                analyzer_results_return.append(element)
+            len_to_add = len_to_add + len(word_to_replace) - len(word)
 
     return (
         MarianText_anonymize_letter,
@@ -441,7 +444,7 @@ def change_name_patient_abbreviations(courrier, nom, prenom, abbreviations_dict)
                     'Abbreviation or patient name ' + i + ' replaced by ' + value
                 )
                 courrier_name = courrier_name.replace(i, value)
-                
+
     return courrier_name, list_replaced
 
 
