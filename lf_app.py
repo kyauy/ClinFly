@@ -70,8 +70,17 @@ def get_models():
 def get_list_not_deidentify():
     nom_propre_data = pd.read_csv(
         "data/exception_list_anonymization.tsv", sep="\t", header=None
-    )
-    nom_propre_list = nom_propre_data[0].to_list() + [
+    ).astype(str)
+
+    drug_data = pd.read_csv(
+        "data/drug_name.tsv", sep="\t", header=None
+    ).astype(str)
+
+    gene_data = pd.read_csv(
+        "data/gene_name.tsv", sep="\t", header=None
+    ).astype(str)
+
+    nom_propre_list = nom_propre_data[0].to_list() + drug_data[0].to_list() + gene_data[0].to_list() + [
         "PN",
         "TN",
         "SD",
@@ -244,7 +253,7 @@ def anonymize_analyzer(MarianText_letter, _analyzer, nom_propre):
     for element_raw in sorted_dict:
         element = analyzer_results[element_raw]
         word = MarianText_letter[element.start : element.end]
-        exception_list_presidio = ['age', 'year', 'month']
+        exception_list_presidio = ['age', 'year', 'month', 'day']
         exception_detected = [e for e in exception_list_presidio if e in word.lower()]
         if len(exception_detected) == 0:
             if word.lower().strip() in nom_propre:
