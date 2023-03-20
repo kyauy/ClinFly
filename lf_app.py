@@ -233,7 +233,7 @@ class Translator:
 
 
 @st.cache_data(max_entries=30)
-def anonymize_analyzer(MarianText_letter, _analyzer, nom_propre):
+def anonymize_analyzer(MarianText_letter, _analyzer, nom_propre, nom, prenom):
     MarianText_anonymize_letter = MarianText_letter
     # st.write(MarianText_anonymize_letter)
     analyzer_results_keep = []
@@ -265,7 +265,16 @@ def anonymize_analyzer(MarianText_letter, _analyzer, nom_propre):
                     + word_to_replace
                     + MarianText_anonymize_letter[element.end + len_to_add :]
                 )
-                analyzer_results_saved.append(str(element) + ", word:" + word)
+                analyzer_results_saved.append({
+                        "name": nom,
+                        "surname": prenom,
+                        "type": "deidentification",
+                        "value": word,
+                        "correction": element.entity_type,
+                        "lf_detected": False,
+                        "manual_validation": False,
+                    })
+               # analyzer_results_saved.append(str(element) + ", word:" + word)
             else:
                 word_to_replace = "**:red[" + word + "]** `[" + element.entity_type + "]`"
                 MarianText_anonymize_letter = (
@@ -273,11 +282,29 @@ def anonymize_analyzer(MarianText_letter, _analyzer, nom_propre):
                     + word_to_replace
                     + MarianText_anonymize_letter[element.end + len_to_add :]
                 )
-                analyzer_results_keep.append(str(element) + ", word:" + word)
+                analyzer_results_keep.append({
+                        "name": nom,
+                        "surname": prenom,
+                        "type": "deidentification",
+                        "value": word,
+                        "correction": element.entity_type,
+                        "lf_detected": True,
+                        "manual_validation": True,
+                    })
+                #analyzer_results_keep.append(str(element) + ", word:" + word)
                 analyzer_results_return.append(element)
             len_to_add = len_to_add + len(word_to_replace) - len(word)
         else:
-            analyzer_results_saved.append(str(element) + ", word:" + word)
+            analyzer_results_saved.append({
+                        "name": nom,
+                        "surname": prenom,
+                        "type": "deidentification",
+                        "value": word,
+                        "correction": element.entity_type,
+                        "lf_detected": False,
+                        "manual_validation": False,
+                    })
+            #analyzer_results_saved.append(str(element) + ", word:" + word)
 
     return (
         MarianText_anonymize_letter,
@@ -450,12 +477,32 @@ def change_name_patient_abbreviations(courrier, nom, prenom, abbreviations_dict)
     list_replaced = []
     splitted_courrier = courrier_name.split()
     for i in splitted_courrier:
-        print(i)
+        #print(i)
         for key, value in dict_correction_name_abbreviations.items():
             if i.lower().strip() == key.lower().strip():
-                list_replaced.append(
-                    'Abbreviation or patient name ' + i + ' replaced by ' + value
-                )
+                if i == nom or i == prenom:
+                    list_replaced.append({
+                        "name": nom,
+                        "surname": prenom,
+                        "type": "index_case",
+                        "value": i,
+                        "correction": value,
+                        "lf_detected": True,
+                        "manual_validation": True,
+                    })
+                else:
+                     list_replaced.append({
+                        "name": nom,
+                        "surname": prenom,
+                        "type": "abbreviations",
+                        "value": i,
+                        "correction": value,
+                        "lf_detected": True,
+                        "manual_validation": True,
+                    })                   
+                #list_replaced.append(
+                #    'Abbreviation or patient name ' + i + ' replaced by ' + value
+                #)
                 courrier_name = courrier_name.replace(i, value)
 
     return courrier_name, list_replaced
@@ -471,14 +518,23 @@ def translate_marian(courrier_name, _nlp, _marian_fr_en):
 
 
 @st.cache_resource(max_entries=30)
-def correct_marian(MarianText_space, dict_correction):
+def correct_marian(MarianText_space, dict_correction, nom, prenom):
     MarianText = MarianText_space
     list_replaced = []
     for key, value in dict_correction.items():
         if key in MarianText:
-            list_replaced.append(
-                'Marian translation replaced "' + key + '" by "' + value
-            )
+            list_replaced.append({
+                        "name": nom,
+                        "surname": prenom,
+                        "type": "marian_correction",
+                        "value": key,
+                        "correction": value,
+                        "lf_detected": True,
+                        "manual_validation": True,
+                    }) 
+            #list_replaced.append(
+            #    'Marian translation replaced "' + key + '" by "' + value
+            #)
             MarianText = MarianText.replace(key, value)
     return MarianText, list_replaced
 
@@ -489,7 +545,7 @@ def translate_letter(courrier, nom, prenom, _nlp, _marian_fr_en, dict_correction
     courrier_name, list_replaced_abb_name = change_name_patient_abbreviations(courrier, nom, prenom, abbreviation_dict)
     MarianText_raw = translate_marian(courrier_name, _nlp, _marian_fr_en)
     MarianText_space = add_space_to_comma_endpoint(MarianText_raw, _nlp)
-    MarianText, list_replaced = correct_marian(MarianText_space, dict_correction)
+    MarianText, list_replaced = correct_marian(MarianText_space, dict_correction, nom, prenom)
     return MarianText, list_replaced, list_replaced_abb_name
 
 
@@ -615,6 +671,7 @@ def add_biometrics(text, _nlp):
         i for i in cutsentence_with_biometrics if i != "."
     ]
     return " ".join(cutsentence_with_biometrics_return), additional_terms
+
 @st.cache_data(max_entries=30)
 def main_function(inputStr):
   hpo_to_name = get_phenotypes_lf.getNames()
@@ -662,18 +719,66 @@ if submit_button or st.session_state.load_state:
         analyzer_results_return,
         analyzer_results_keep,
         analyzer_results_saved,
-    ) = anonymize_analyzer(MarianText_letter, analyzer, nom_propre)
+    ) = anonymize_analyzer(MarianText_letter, analyzer, nom_propre, nom, prenom)
     with st.expander("See country abbreviation and name correction"):
-        st.write(list_replaced_abb_name)
-    with st.expander("See country-specific correction"):
-        st.write(list_replaced)
-    with st.expander("See de-identified element"):
-        st.write("De-identified elements")
-        st.write(analyzer_results_keep)
-        st.write("Keep elements")
-        st.write(analyzer_results_saved)
+        abbreviations_check = st.experimental_data_editor(
+        pd.DataFrame(list_replaced_abb_name),
+        num_rows="dynamic",
+        key="abbreviation_editor",
+        #use_container_width=True,
+        )
+
+        st.download_button(
+            "Download abbreviations check",
+            convert_df(abbreviations_check),
+            nom + "_" + prenom + "_abbreviations_check.txt",
+            "text",
+            key="download-abbreviations",
+        )
+    with st.expander("See translation tool correction"):
+        translation_check = st.experimental_data_editor(
+        pd.DataFrame(list_replaced),
+        num_rows="dynamic",
+        key="translation_editor",
+        #use_container_width=True,
+        )
+
+        st.download_button(
+            "Download translations check",
+            convert_df(translation_check),
+            nom + "_" + prenom + "_translations_check.tsv",
+            "text/csv",
+            key="download-translation-correction",
+        )    
+    with st.expander("See de-identified elements"):
+        deidentification_check = st.experimental_data_editor(
+        pd.DataFrame(analyzer_results_keep + analyzer_results_saved),
+        num_rows="dynamic",
+        key="deidentification_editor",
+        #use_container_width=True,
+        )
+
+        st.download_button(
+            "Download deidentification check",
+            convert_df(deidentification_check),
+            nom + "_" + prenom + "_deidentification_check.tsv",
+            "text/csv",
+            key="download-deidentification-correction",
+        )   
+        #st.write("De-identified elements")
+        #st.write(analyzer_results_keep)
+        #st.write("Keep elements")
+        #st.write(analyzer_results_saved)
 
     st.caption(MarianText_anonymize_letter_analyze)
+
+    st.download_button(
+        "Download translated letter",
+        MarianText_anonymize_letter_analyze,
+        nom + "_" + prenom + "_translated_letter.txt",
+        "text",
+        key="download-translation",
+    )
 
     MarianText_anonymize_letter_engine = anonymize_engine(
         MarianText_letter, analyzer_results_return, engine, nlp_fr
@@ -699,7 +804,7 @@ if submit_button or st.session_state.load_state:
         convert_df(MarianText_anonymize_letter_engine_df),
         nom + "_" + prenom + "_translated_and_deindentified_letter.txt",
         "text",
-        key="download-translation",
+        key="download-translation-deindentification",
     )
 
     st.subheader("Summarization")
@@ -716,7 +821,28 @@ if submit_button or st.session_state.load_state:
         st.write(additional_terms)
 
     with st.expander("See unsafe extracted terms"):
-        st.write(clinphen_unsafe)
+        clinphen_unsafe_check_raw = clinphen_unsafe
+        clinphen_unsafe_check_raw['lf_detected'] = False
+        clinphen_unsafe_check_raw['manual_validation'] = False
+        clinphen_unsafe_check_raw['error'] = 'negation or relative'
+        clinphen_unsafe_check = st.experimental_data_editor(
+        clinphen_unsafe_check_raw,
+        num_rows="dynamic",
+        key="unsafe_check_editor",
+        #use_container_width=True,
+        )
+
+        st.download_button(
+            "Download unsafe extracted terms check",
+            convert_df(clinphen_unsafe_check_raw),
+            nom + "_" + prenom + "_unsafe_extracted_terms_check.tsv",
+            "text/csv",
+            key="download-unsafe-extracted-terms",
+        )    
+
+    clinphen['lf_detected'] = True
+    clinphen['manual_validation'] = True
+    clinphen['error'] = None
 
     clinphen_df = st.experimental_data_editor(
         clinphen, num_rows="dynamic", key="data_editor"
