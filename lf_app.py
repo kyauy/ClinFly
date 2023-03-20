@@ -253,8 +253,10 @@ def anonymize_analyzer(MarianText_letter, _analyzer, nom_propre):
     for element_raw in sorted_dict:
         element = analyzer_results[element_raw]
         word = MarianText_letter[element.start : element.end]
-        exception_list_presidio = ['age', 'year', 'month', 'day']
+        exception_list_presidio = ['age', 'year', 'month', 'day', 'hour']
         exception_detected = [e for e in exception_list_presidio if e in word.lower()]
+        if word.count('/') == 1 or word.count('/') > 2:
+            exception_detected.append('/ or ///')
         if len(exception_detected) == 0:
             if word.lower().strip() in nom_propre:
                 word_to_replace = "**:green[" + word + "]** `[" + element.entity_type + "]`"
@@ -274,6 +276,8 @@ def anonymize_analyzer(MarianText_letter, _analyzer, nom_propre):
                 analyzer_results_keep.append(str(element) + ", word:" + word)
                 analyzer_results_return.append(element)
             len_to_add = len_to_add + len(word_to_replace) - len(word)
+        else:
+            analyzer_results_saved.append(str(element) + ", word:" + word)
 
     return (
         MarianText_anonymize_letter,
@@ -693,7 +697,7 @@ if submit_button or st.session_state.load_state:
     st.download_button(
         "Download translated and de-identified letter",
         convert_df(MarianText_anonymize_letter_engine_df),
-        "translated_and_deindentified_letter.txt",
+        nom + "_" + prenom + "_translated_and_deindentified_letter.txt",
         "text",
         key="download-translation",
     )
@@ -723,7 +727,7 @@ if submit_button or st.session_state.load_state:
     st.download_button(
         "Download summarized letter in HPO CSV format",
         convert_df(clinphen_df),
-        "summarized_letter.tsv",
+        nom + "_" + prenom + "_summarized_letter.tsv",
         "text/csv",
         key="download-summarization",
     )
@@ -731,7 +735,7 @@ if submit_button or st.session_state.load_state:
     st.download_button(
         "Download summarized letter in Phenotips JSON format",
         convert_json(clinphen_df),
-        "summarized_letter.json",
+        nom + "_" + prenom + "_summarized_letter.json",
         "json",
         key="download-summarization-json",
     )
