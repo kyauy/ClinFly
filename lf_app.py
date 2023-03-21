@@ -736,8 +736,8 @@ if submit_button or st.session_state.load_state:
         st.download_button(
             "Download abbreviations check",
             convert_df(abbreviations_check),
-            nom + "_" + prenom + "_abbreviations_check.txt",
-            "text",
+            nom + "_" + prenom + "_abbreviations_check.tsv",
+            "text/csv",
             key="download-abbreviations",
         )
     with st.expander("See translation tool correction"):
