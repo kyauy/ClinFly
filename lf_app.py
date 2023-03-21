@@ -239,7 +239,7 @@ def anonymize_analyzer(MarianText_letter, _analyzer, nom_propre, nom, prenom):
     analyzer_results_keep = []
     analyzer_results_return = []
     analyzer_results_saved = []
-    analyzer_results = _analyzer.analyze(text=MarianText_letter, language="en", entities=["DATE_TIME", "PERSON"], allow_list=['evening', 'day', 'the day', 'the age of', 'age', 'years', 'years old', 'months', 'hours', 'night', 'noon'])
+    analyzer_results = _analyzer.analyze(text=MarianText_letter, language="en", entities=["DATE_TIME", "PERSON"], allow_list=['evening', 'day', 'the day', 'the age of', 'age', 'years', 'week', 'years old', 'months', 'hours', 'night', 'noon'])
     len_to_add = 0
     analyser_results_to_sort = {}
     i = 0
@@ -253,7 +253,7 @@ def anonymize_analyzer(MarianText_letter, _analyzer, nom_propre, nom, prenom):
     for element_raw in sorted_dict:
         element = analyzer_results[element_raw]
         word = MarianText_letter[element.start : element.end]
-        exception_list_presidio = ['age', 'year', 'month', 'day', 'hour']
+        exception_list_presidio = ['age', 'year', 'month', 'day', 'hour', 'week']
         exception_detected = [e for e in exception_list_presidio if e in word.lower()]
         if word.count('/') == 1 or word.count('/') > 2:
             exception_detected.append('/ or ///')
