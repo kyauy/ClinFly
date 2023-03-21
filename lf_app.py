@@ -239,7 +239,7 @@ def anonymize_analyzer(MarianText_letter, _analyzer, nom_propre, nom, prenom):
     analyzer_results_keep = []
     analyzer_results_return = []
     analyzer_results_saved = []
-    analyzer_results = _analyzer.analyze(text=MarianText_letter, language="en", entities=["DATE_TIME", "PERSON"], allow_list=['evening', 'day', 'the day', 'the age of', 'age', 'years', 'week', 'years old', 'months', 'hours', 'night', 'noon'])
+    analyzer_results = _analyzer.analyze(text=MarianText_letter, language="en", entities=["DATE_TIME", "PERSON"], allow_list=['evening', 'day', 'the day', 'the age of', 'age', 'years', 'week', 'years old', 'months', 'hours', 'night', 'noon', 'nights'])
     len_to_add = 0
     analyser_results_to_sort = {}
     i = 0
@@ -437,6 +437,8 @@ def get_translation_dict_correction():
         "ARCF": "fetal distress",
         "\n": " ",
         "associated": "with",
+        "Mr.": "Mr",
+        "Mrs.":  "Mrs",
     }
 
     dict_correction = {}
@@ -827,6 +829,8 @@ if submit_button or st.session_state.load_state:
 
     with st.expander("See unsafe extracted terms"):
         clinphen_unsafe_check_raw = clinphen_unsafe
+        clinphen_unsafe_check_raw['name'] = nom
+        clinphen_unsafe_check_raw['surname'] = prenom
         clinphen_unsafe_check_raw['lf_detected'] = False
         clinphen_unsafe_check_raw['manual_validation'] = False
         clinphen_unsafe_check_raw['error'] = 'negation or relative'
@@ -845,6 +849,8 @@ if submit_button or st.session_state.load_state:
             key="download-unsafe-extracted-terms",
         )    
 
+    clinphen['name'] = nom
+    clinphen['surname'] = prenom
     clinphen['lf_detected'] = True
     clinphen['manual_validation'] = True
     clinphen['error'] = None
