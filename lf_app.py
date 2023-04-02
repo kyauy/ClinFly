@@ -1,4 +1,5 @@
 from __future__ import annotations  # For Python 3.7
+#from memory_profiler import profile
 import streamlit as st
 from PIL import Image
 import pandas as pd
@@ -97,6 +98,11 @@ def get_list_not_deidentify():
         "hypoacousia",
     ]
     nom_propre = [x.lower() for x in nom_propre_list]
+
+    del nom_propre_data
+    del drug_data
+    del gene_data
+    del nom_propre_list
     return nom_propre
 
 
@@ -113,6 +119,9 @@ def config_deidentify():
 
     analyzer = AnalyzerEngine(nlp_engine=nlp_engine, supported_languages=["en"])
     engine = AnonymizerEngine()
+    del configuration
+    del provider
+    del nlp_engine
     return analyzer, engine
 
 
@@ -172,7 +181,7 @@ class SentenceBoundaries:
     def __str__(self) -> str:
         return "".join(map(str, self.sentence_boundaries))
 
-
+@st.cache_resource(max_entries=30)
 def minibatch(seq, size):
     items = []
     for x in seq:
@@ -239,7 +248,7 @@ def anonymize_analyzer(MarianText_letter, _analyzer, nom_propre, nom, prenom):
     analyzer_results_keep = []
     analyzer_results_return = []
     analyzer_results_saved = []
-    analyzer_results = _analyzer.analyze(text=MarianText_letter, language="en", entities=["DATE_TIME", "PERSON"], allow_list=['evening', 'day', 'the day', 'the age of', 'age', 'years', 'week', 'years old', 'months', 'hours', 'night', 'noon', 'nights'])
+    analyzer_results = _analyzer.analyze(text=MarianText_letter, language="en", entities=["DATE_TIME", "PERSON"], allow_list=['evening', 'day', 'the day', 'the age of', 'age', 'years', 'week', 'years old', 'months', 'hours', 'night', 'noon', 'nights', 'tomorrow', 'today', 'yesterday'])
     len_to_add = 0
     analyser_results_to_sort = {}
     i = 0
@@ -249,11 +258,11 @@ def anonymize_analyzer(MarianText_letter, _analyzer, nom_propre, nom, prenom):
     sorted_tuples = sorted(analyser_results_to_sort.items(), key=lambda x: x[1])
     sorted_dict = {k: v for k, v in sorted_tuples}
     # st.write(sorted_dict)
+    exception_list_presidio = ['age', 'year', 'month', 'day', 'hour', 'week']
 
     for element_raw in sorted_dict:
         element = analyzer_results[element_raw]
         word = MarianText_letter[element.start : element.end]
-        exception_list_presidio = ['age', 'year', 'month', 'day', 'hour', 'week']
         exception_detected = [e for e in exception_list_presidio if e in word.lower()]
         if word.count('/') == 1 or word.count('/') > 2:
             exception_detected.append('/ or ///')
@@ -305,6 +314,12 @@ def anonymize_analyzer(MarianText_letter, _analyzer, nom_propre, nom, prenom):
                         "manual_validation": False,
                     })
             #analyzer_results_saved.append(str(element) + ", word:" + word)
+    del analyzer_results
+    del len_to_add
+    del exception_list_presidio
+    del analyser_results_to_sort
+    del sorted_tuples
+    del sorted_dict
 
     return (
         MarianText_anonymize_letter,
@@ -398,11 +413,14 @@ def add_space_to_comma_endpoint(texte, _nlp):
     # text_fr_comma_endpoint_leftpc_right_pc_stroph = add_space_to_stroph(
     #    text_fr_comma_endpoint_leftpc_right_pc
     # )
+    del text_fr_comma
+    del text_fr_comma_endpoint
+    del text_fr_comma_endpoint_leftpc
     return text_fr_comma_endpoint_leftpc_right_pc
 
 @st.cache_data(max_entries=30)
 def get_abbreviation_dict_correction():
-    dict_correction = {}
+    #dict_correction = {}
     with open("data/fr_abbreviations.json", "r") as outfile:
         hpo_abbreviations = json.load(outfile)
     #for key, value in hpo_abbreviations.items():
@@ -456,6 +474,9 @@ def get_translation_dict_correction():
 
     for key, value in hpo_translated_abbreviations.items():
         dict_correction[" " + key + " "] = " " + value + " "
+    
+    del hpo_translated
+    del hpo_translated_abbreviations
     return dict_correction
 
 
@@ -481,13 +502,14 @@ def change_name_patient_abbreviations(courrier, nom, prenom, abbreviations_dict)
     for i in splitted_courrier:
         #print(i)
         for key, value in dict_correction_name_abbreviations.items():
-            if i.lower().strip() == key.lower().strip():
-                if i == nom or i == prenom:
+            i_check = i.lower().strip().replace(',','').replace('.', '')
+            if i_check == key.lower().strip():
+                if i_check == nom or i_check == prenom:
                     list_replaced.append({
                         "name": nom,
                         "surname": prenom,
                         "type": "index_case",
-                        "value": i,
+                        "value": i.strip().replace(',','').replace('.', ''),
                         "correction": value,
                         "lf_detected": True,
                         "manual_validation": True,
@@ -497,7 +519,7 @@ def change_name_patient_abbreviations(courrier, nom, prenom, abbreviations_dict)
                         "name": nom,
                         "surname": prenom,
                         "type": "abbreviations",
-                        "value": i,
+                        "value": i.strip().replace(',','').replace('.', ''),
                         "correction": value,
                         "lf_detected": True,
                         "manual_validation": True,
@@ -505,8 +527,9 @@ def change_name_patient_abbreviations(courrier, nom, prenom, abbreviations_dict)
                 #list_replaced.append(
                 #    'Abbreviation or patient name ' + i + ' replaced by ' + value
                 #)
-                courrier_name = courrier_name.replace(i, value)
-
+                courrier_name = courrier_name.replace(i.strip().replace(',','').replace('.', ''), value)
+    del dict_correction_name_abbreviations
+    del splitted_courrier
     return courrier_name, list_replaced
 
 
@@ -516,6 +539,7 @@ def translate_marian(courrier_name, _nlp, _marian_fr_en):
     for sentence in _nlp.process(courrier_name).sentences:
         list_of_sentence.append(sentence.text)
     MarianText_raw = "\n".join(_marian_fr_en.translate(list_of_sentence))
+    del list_of_sentence
     return MarianText_raw
 
 
@@ -548,6 +572,8 @@ def translate_letter(courrier, nom, prenom, _nlp, _marian_fr_en, dict_correction
     MarianText_raw = translate_marian(courrier_name, _nlp, _marian_fr_en)
     MarianText_space = add_space_to_comma_endpoint(MarianText_raw, _nlp)
     MarianText, list_replaced = correct_marian(MarianText_space, dict_correction, nom, prenom)
+    del MarianText_raw
+    del MarianText_space
     return MarianText, list_replaced, list_replaced_abb_name
 
 
@@ -580,10 +606,11 @@ def convert_json(df):
     if len(df) > 0:
         df_dict_list = df[['HPO ID', 'Phenotype name']].to_dict(orient='index')
         for key, value in df_dict_list.items():
-            dict_return['features'].append({'id': value['HPO ID'], 'observed': 'yes', 'label': value['Phenotype name'], 'type': "phenotype"})
+            if len(value['HPO ID']) > 0:
+                dict_return['features'].append({'id': value['HPO ID'], 'observed': 'yes', 'label': value['Phenotype name'], 'type': "phenotype"})
         return json.dumps(dict_return)
     else:
-        return None
+        return json.dumps(dict_return)
 
 @st.cache_data(max_entries=30)
 def add_biometrics(text, _nlp):
@@ -599,7 +626,7 @@ def add_biometrics(text, _nlp):
                 sentence = sentence.replace("DS", "SD")
                 try:
                     kg_sd = re.findall("kg(.*?)sd", sentence.lower())[0]
-                    num_kg_sd = re.findall("([\-0-9.])", kg_sd)[0]
+                    num_kg_sd = re.findall("\(\s*([-+]?\d+(?:\.\d+)?)\s*", kg_sd)[0]
                     # print(kg_sd)
                     kg_sd = float(num_kg_sd)
                     print(kg_sd)
@@ -620,7 +647,7 @@ def add_biometrics(text, _nlp):
                         print(height_sd_raw)
                     height_sd = re.findall("m(.*?)s", height_sd_raw)[0]
                     print(height_sd)
-                    num_height_sd = re.findall("([\-0-9.])", height_sd)[0]
+                    num_height_sd = re.findall("\(\s*([-+]?\d+(?:\.\d+)?)\s*", height_sd)[0]
                     height_sd = float(num_height_sd)
                     print(height_sd)
                     if height_sd >= 2:
@@ -638,7 +665,7 @@ def add_biometrics(text, _nlp):
                         .replace(" ", "")
                     )
                     pc_sd = re.findall("cm(.*?)s", pc_sd_raw)[0]
-                    num_pc_sd = re.findall("([\-0-9.])", pc_sd)[0]
+                    num_pc_sd = re.findall("\(\s*([-+]?\d+(?:\.\d+)?)\s*", pc_sd)[0]
                     pc_sd = float(num_pc_sd)
                     print(pc_sd)
                     if pc_sd >= 2:
@@ -677,14 +704,21 @@ def add_biometrics(text, _nlp):
     cutsentence_with_biometrics_return = [
         i for i in cutsentence_with_biometrics if i != "."
     ]
+    del cutsentence_with_biometrics
+    del cutsentence
+    del keep_element
     return " ".join(cutsentence_with_biometrics_return), additional_terms
 
+#@profile
 @st.cache_data(max_entries=30)
 def main_function(inputStr):
   hpo_to_name = get_phenotypes_lf.getNames()
   returnString, returnStringUnsafe = get_phenotypes_lf.extract_phenotypes(inputStr, hpo_to_name)
   returnDf = get_phenotypes_lf.get_dataframe_from_clinphen(returnString)
   returnDfUnsafe = get_phenotypes_lf.get_dataframe_from_clinphen(returnStringUnsafe)
+  del hpo_to_name
+  del returnString
+  del returnStringUnsafe
   return returnDf, returnDfUnsafe
 
 models_status = get_models()
@@ -719,6 +753,7 @@ if submit_button or st.session_state.load_state:
         courrier, nom, prenom, nlp_fr, marian_fr_en, dict_correction, dict_abbreviation_correction
     )
     MarianText_letter = reformat_to_letter(MarianText, nlp_fr)
+    del MarianText
 
     st.subheader("Translation and De-identification")
     (
@@ -824,6 +859,10 @@ if submit_button or st.session_state.load_state:
     )
     clinphen, clinphen_unsafe = main_function(MarianText_anonymized_reformat_biometrics)
 
+    del MarianText_anonymize_letter_engine
+    del MarianText_anonymized_reformat_space
+    del MarianText_anonymized_reformat_biometrics
+
     with st.expander("See additional terms extracted with biometrics analysis"):
         st.write(additional_terms)
 
@@ -831,7 +870,8 @@ if submit_button or st.session_state.load_state:
         clinphen_unsafe_check_raw = clinphen_unsafe
         clinphen_unsafe_check_raw['name'] = nom
         clinphen_unsafe_check_raw['surname'] = prenom
-        clinphen_unsafe_check_raw['lf_detected'] = False
+        clinphen_unsafe_check_raw['type'] = 'unsafe'
+        clinphen_unsafe_check_raw['lf_detected'] = True
         clinphen_unsafe_check_raw['manual_validation'] = False
         clinphen_unsafe_check_raw['error'] = 'negation or relative'
         clinphen_unsafe_check = st.experimental_data_editor(
@@ -840,7 +880,7 @@ if submit_button or st.session_state.load_state:
         key="unsafe_check_editor",
         #use_container_width=True,
         )
-
+        del clinphen_unsafe
         st.download_button(
             "Download unsafe extracted terms check",
             convert_df(clinphen_unsafe_check_raw),
@@ -851,6 +891,7 @@ if submit_button or st.session_state.load_state:
 
     clinphen['name'] = nom
     clinphen['surname'] = prenom
+    clinphen['type'] = 'safe'
     clinphen['lf_detected'] = True
     clinphen['manual_validation'] = True
     clinphen['error'] = None
@@ -858,7 +899,7 @@ if submit_button or st.session_state.load_state:
     clinphen_df = st.experimental_data_editor(
         clinphen, num_rows="dynamic", key="data_editor"
     )
-
+    del clinphen
     st.caption("Modify cells above 👆 or even ➕ add rows, before downloading 👇")
 
     st.download_button(
@@ -876,3 +917,4 @@ if submit_button or st.session_state.load_state:
         "json",
         key="download-summarization-json",
     )
+

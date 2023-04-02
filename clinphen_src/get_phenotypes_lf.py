@@ -23,10 +23,10 @@ def end_of_point(word):
   if word == "though": return True
   return False
 
-subpoint_enders = [",", ":"]
+subpoint_enders = [":"] #","
 def end_of_subpoint(word):
   if word[-1] in subpoint_enders: return True
-  if word == "and": return True
+  #if word == "and": return True
   return False
 
 def string_to_record_linewise(medical_record):
@@ -94,7 +94,7 @@ def load_medical_record_subsentences(medical_record):
   return subsentence_sets + load_medical_record_linewise(medical_record)
 
 #Checks the given sentence for any flags from the lists you indicate.
-negative_flags = ["no", "not", "none", "negative", "non", "never", "without", "denies", "haven't", "don't", "doesn't", "haven t", "don t", "doesn t", 'didn t']
+negative_flags = ["no", "not", "none", "negative", "non", "never", "without", "denies", "haven't", "don't", "doesn't", "haven t", "don t", "doesn t", 'didn t', 'doesn', 'don', 'haven', 'didn']
 family_flags = ["<person>","<person","cousin", "parent", "mom", "mother", "dad", "father", "grandmother", "grandfather", "grandparent", "family", "brother", "sister", "sibling", "uncle", "aunt", "nephew", "niece", "son", "daughter", "grandchild"]
 healthy_flags = ["normal"]
 disease_flags = ["associated", "gene", "recessive", "dominant", "variant", "cause", "literature", "individuals"]
