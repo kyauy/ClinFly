@@ -595,7 +595,6 @@ def reformat_to_letter(text, _nlp):
 def convert_df(df):
     return df.to_csv(sep="\t", index=False).encode("utf-8")
 
-
 @st.cache_data(max_entries=60)
 def convert_df_no_header(df):
     return df.to_csv(sep="\t", index=False, header=None).encode("utf-8")
@@ -611,6 +610,14 @@ def convert_json(df):
         return json.dumps(dict_return)
     else:
         return json.dumps(dict_return)
+
+@st.cache_data(max_entries=60)
+def convert_list_phenogenius(df):
+    if len(df) > 0:
+        return ",".join(df['HPO ID'].to_list())
+    else:
+        return "No HPO in letters."
+
 
 @st.cache_data(max_entries=30)
 def add_biometrics(text, _nlp):
@@ -917,4 +924,13 @@ if submit_button or st.session_state.load_state:
         "json",
         key="download-summarization-json",
     )
+
+    st.download_button(
+        "Download summarized letter in PhenoGenius list of HPO format",
+        convert_list_phenogenius(clinphen_df),
+        nom + "_" + prenom + "_summarized_letter_list_phenogenius.tsv",
+        "text",
+        key="download-summarization-phenogenius",
+    )
+
 
