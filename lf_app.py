@@ -12,7 +12,7 @@ from typing import List
 import transformers
 from typing import Sequence
 import spacy
-from presidio_analyzer import AnalyzerEngine, RecognizerRegistry
+from presidio_analyzer import AnalyzerEngine, RecognizerRegistry, PatternRecognizer
 from presidio_analyzer.nlp_engine import NlpEngineProvider
 from presidio_anonymizer import AnonymizerEngine
 from presidio_anonymizer.entities import RecognizerResult, OperatorConfig
@@ -66,6 +66,18 @@ def get_models():
         print(spacy_model_name + " already downloaded")
     return "Done"
 
+@st.cache_data(max_entries=30)
+def get_cities_list():
+    cities = pd.read_csv('data/proper_noun_location_sort.csv')
+    cities.columns=['ville']
+    whole_cities_patterns = []
+    list_cities = cities['ville'].to_list()
+    for element in list_cities:
+        whole_cities_patterns.append(element)
+        whole_cities_patterns.append(element.lower().capitalize())
+    del cities
+    del list_cities
+    return whole_cities_patterns
 
 @st.cache_data(max_entries=30)
 def get_list_not_deidentify():
@@ -116,12 +128,15 @@ def config_deidentify():
     # Create NLP engine based on configuration
     provider = NlpEngineProvider(nlp_configuration=configuration)
     nlp_engine = provider.create_engine()
+    frcity_recognizer = PatternRecognizer(supported_entity="FRENCH_CITY", deny_list=cities_list)
 
     analyzer = AnalyzerEngine(nlp_engine=nlp_engine, supported_languages=["en"])
+    analyzer.registry.add_recognizer(frcity_recognizer)
     engine = AnonymizerEngine()
     del configuration
     del provider
     del nlp_engine
+    del frcity_recognizer
     return analyzer, engine
 
 
@@ -248,16 +263,21 @@ def anonymize_analyzer(MarianText_letter, _analyzer, nom_propre, nom, prenom):
     analyzer_results_keep = []
     analyzer_results_return = []
     analyzer_results_saved = []
-    analyzer_results = _analyzer.analyze(text=MarianText_letter, language="en", entities=["DATE_TIME", "PERSON"], allow_list=['evening', 'day', 'the day', 'the age of', 'age', 'years', 'week', 'years old', 'months', 'hours', 'night', 'noon', 'nights', 'tomorrow', 'today', 'yesterday'])
+    analyzer_results = _analyzer.analyze(text=MarianText_letter, language="en", entities=["DATE_TIME", "PERSON", "FRENCH_CITY"], allow_list=['evening', 'day', 'the day', 'the age of', 'age', 'years', 'week', 'years old', 'months', 'hours', 'night', 'noon', 'nights', 'tomorrow', 'today', 'yesterday'])
     len_to_add = 0
     analyser_results_to_sort = {}
     i = 0
+    detect_duplicated = []
     for element in analyzer_results:
-        analyser_results_to_sort[i] = element.start
+        if element.start not in detect_duplicated:
+            analyser_results_to_sort[i] = element.start
+            detect_duplicated.append(element.start)
+        else:
+            pass    
         i = i + 1
     sorted_tuples = sorted(analyser_results_to_sort.items(), key=lambda x: x[1])
     sorted_dict = {k: v for k, v in sorted_tuples}
-    # st.write(sorted_dict)
+    print(sorted_dict)
     exception_list_presidio = ['age', 'year', 'month', 'day', 'hour', 'week']
 
     for element_raw in sorted_dict:
@@ -337,6 +357,7 @@ def anonymize_engine(MarianText_letter, _analyzer_results_return, _engine, _nlp)
         operators={
             "PERSON": OperatorConfig("replace", {"new_value": ""}),
             "LOCATION": OperatorConfig("replace", {"new_value": ""}),
+            "FRENCH_CITY": OperatorConfig("replace", {"new_value": ""}),
         },
     )
     return reformat_to_letter(result.text, _nlp)
@@ -729,12 +750,15 @@ def main_function(inputStr):
   return returnDf, returnDfUnsafe
 
 models_status = get_models()
+cities_list = get_cities_list()
+#print(cities_list)
 nlp_fr, marian_fr_en = get_nlp_marian()
 #nlp_en = get_nlp_en()
 dict_correction = get_translation_dict_correction()
 dict_abbreviation_correction = get_abbreviation_dict_correction()
 nom_propre = get_list_not_deidentify()
 analyzer, engine = config_deidentify()
+
 
 if "load_state" not in st.session_state:
     st.session_state.load_state = False
@@ -928,7 +952,7 @@ if submit_button or st.session_state.load_state:
     st.download_button(
         "Download summarized letter in PhenoGenius list of HPO format",
         convert_list_phenogenius(clinphen_df),
-        nom + "_" + prenom + "_summarized_letter_list_phenogenius.tsv",
+        nom + "_" + prenom + "_summarized_letter.txt",
         "text",
         key="download-summarization-phenogenius",
     )

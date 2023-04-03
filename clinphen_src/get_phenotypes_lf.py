@@ -3,7 +3,7 @@ from nltk.stem import WordNetLemmatizer
 import pandas as pd
 import re
 
-HPO_SYN_MAP_FILE = "clinphen_src/data/hpo_synonyms.txt"
+HPO_SYN_MAP_FILE = "clinphen_src/data/hpo_synonym_filter.txt"
 
 def getNames():
   returnMap = {}
@@ -23,10 +23,10 @@ def end_of_point(word):
   if word == "though": return True
   return False
 
-subpoint_enders = [":"] #","
+subpoint_enders = [":", ','] #","
 def end_of_subpoint(word):
   if word[-1] in subpoint_enders: return True
-  #if word == "and": return True
+  if word == "and": return True
   return False
 
 def string_to_record_linewise(medical_record):
