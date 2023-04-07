@@ -55,10 +55,19 @@ st.sidebar.image(image_chu, caption=None, width=95)
 
 @st.cache_resource(max_entries=30)
 def get_models():
-    nltk.download("omw-1.4")
-    nltk.download('wordnet')
-    stanza.download("fr")
-    #stanza.download("en")
+    try:
+        nltk.data.find('omw-1.4')
+    except LookupError:
+        nltk.download('omw-1.4')
+    try:
+        nltk.data.find('wordnet')
+    except LookupError:
+        nltk.download('wordnet')
+    try:
+        nlp_fr = stanza.Pipeline("fr", processors="tokenize")
+        del nlp_fr
+    except LookupError:
+        stanza.download("fr")
     spacy_model_name = "en_core_web_lg"
     if not spacy.util.is_package(spacy_model_name):
         spacy.cli.download(spacy_model_name)
