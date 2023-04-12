@@ -18,7 +18,7 @@ from presidio_anonymizer import AnonymizerEngine
 from presidio_anonymizer.entities import RecognizerResult, OperatorConfig
 import subprocess
 from clinphen_src import get_phenotypes_lf
-
+from unidecode import unidecode
 
 # -- Set page config
 apptitle = "Linguo Franca"
@@ -84,6 +84,10 @@ def get_cities_list():
     for element in list_cities:
         whole_cities_patterns.append(element)
         whole_cities_patterns.append(element.lower().capitalize())
+        whole_cities_patterns.append(element.upper())
+        whole_cities_patterns.append(unidecode(element))
+        whole_cities_patterns.append(unidecode(element).lower().capitalize())
+        whole_cities_patterns.append(unidecode(element).upper())
     del cities
     del list_cities
     return whole_cities_patterns
@@ -525,7 +529,7 @@ def change_name_patient_abbreviations(courrier, nom, prenom, abbreviations_dict)
         "Pr": "Professeur",
     }     
     for key, value in abbreviations_dict.items():
-        dict_correction_name_abbreviations[key] = value
+        dict_correction_name_abbreviations[key] = value# + " [" + key + "]"
     
     list_replaced = []
     splitted_courrier = courrier_name.split()

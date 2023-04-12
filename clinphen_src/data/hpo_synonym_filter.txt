@@ -2239,13 +2239,8 @@ HP:0000679	taurodont
 HP:0000679	chamber elongated large pulp
 HP:0000679	taurodontism
 HP:0000679	taurodontia
-HP:0000680	baby delayed eruption teeth
-HP:0000680	eruption late milk teeth
-HP:0000680	baby eruption late teeth
 HP:0000680	delayed eruption primary teeth
-HP:0000680	deciduous delayed eruption teeth
 HP:0000680	eruption late primary teeth
-HP:0000680	delayed eruption milk teeth
 HP:0000682	abnormality enamel
 HP:0000682	defective enamel tooth
 HP:0000682	dystrophic enamel tooth
@@ -4165,7 +4160,6 @@ HP:0001572	large tooth
 HP:0001572	excess mass tooth
 HP:0001572	megalodontia
 HP:0001574	abnormality integument
-HP:0001579	acth hypercortisolemia independent
 HP:0001579	hypercortisolism primary
 HP:0001580	adrenocortical disease micronodular pigmented
 HP:0001581	infections recurrent skin
@@ -11726,14 +11720,10 @@ HP:0006311	generalised microdontia
 HP:0006311	generalized microdontia
 HP:0006311	all hypotrophy teeth
 HP:0006311	all decreased teeth width
-HP:0006313	deciduous spaced teeth widely
 HP:0006313	primary spaced teeth widely
 HP:0006313	generalized primary spacing teeth
 HP:0006313	generalised primary spacing teeth
-HP:0006313	baby between gaps teeth wide
 HP:0006313	between gaps primary teeth wide
-HP:0006313	milk spaced teeth widely
-HP:0006313	baby spaced teeth widely
 HP:0006315	incisor maxillary midline single
 HP:0006315	central incisor maxillary median solitary syndrome
 HP:0006315	central incisor maxillary median solitary
@@ -11756,15 +11746,9 @@ HP:0006321	adult eruption failure multiple teeth
 HP:0006321	erupting multiple non secondary teeth
 HP:0006321	erupting multiple non permanent teeth
 HP:0006321	multiple permanent teeth unerupted
-HP:0006323	deciduous exfoliation premature teeth
 HP:0006323	early loss primary teeth
-HP:0006323	deciduous early loss teeth
 HP:0006323	exfoliation premature primary teeth
-HP:0006323	baby early loss teeth
-HP:0006323	deciduous loss premature tooth
-HP:0006323	deciduous loss premature teeth
 HP:0006323	loss premature primary teeth
-HP:0006323	baby loss premature teeth
 HP:0006326	due mucopolysaccharidoses teeth to unerupted
 HP:0006326	due impacted mucopolysaccharidoses teeth to
 HP:0006326	due eruption failure mucopolysaccharidoses to tooth
@@ -11797,32 +11781,15 @@ HP:0006333	crowded incisors maxillary
 HP:0006333	incisors maxillary overlapped
 HP:0006333	crowded incisors upper
 HP:0006334	primary small teeth
-HP:0006334	baby teeth underdevelopment
 HP:0006334	decreased primary size teeth
-HP:0006334	baby decreased size teeth
-HP:0006334	baby small teeth
-HP:0006334	milk teeth underdevelopment
 HP:0006334	hypoplasia primary teeth
-HP:0006334	milk small teeth
 HP:0006334	primary teeth underdevelopment
-HP:0006334	deciduous decreased size teeth
-HP:0006334	deciduous hypoplastic teeth
-HP:0006334	decreased milk size teeth
-HP:0006335	deciduous retention teeth
 HP:0006335	delayed loss primary teeth
-HP:0006335	deciduous persistence teeth
-HP:0006335	baby delayed loss teeth
 HP:0006335	exfoliate failure primary teeth to
-HP:0006335	baby retained teeth
-HP:0006335	deciduous exfoliate failure teeth to
 HP:0006335	persistent primary teeth
-HP:0006335	deciduous delayed loss teeth
 HP:0006335	primary retained teeth
-HP:0006335	deciduous retained teeth
-HP:0006335	baby failure lose teeth to
 HP:0006335	dentition persistent primary
 HP:0006335	persistence primary teeth
-HP:0006335	deciduous dentition persistent
 HP:0006336	dental root short
 HP:0006336	rhizomicry
 HP:0006336	decreased dental length roots
@@ -11859,20 +11826,13 @@ HP:0006342	cone incisors lateral shaped upper
 HP:0006342	incisors lateral maxillary peg shaped
 HP:0006342	peg shaped tooth
 HP:0006342	conoid incisors lateral upper
-HP:0006344	abnormality deciduous molar morphology
 HP:0006344	abnormality molar morphology primary
-HP:0006344	abnormality baby molar shape
 HP:0006344	abnormality molar primary shape
 HP:0006346	front screwdriver shaped teeth
 HP:0006346	incisors screwdriver shaped
-HP:0006347	deciduous decreased teeth width
-HP:0006347	baby decreased teeth width
 HP:0006347	decreased primary tooth width
 HP:0006347	decreased primary size tooth
 HP:0006347	microdontia primary teeth
-HP:0006347	deciduous microdontia teeth
-HP:0006347	decreased milk teeth width
-HP:0006347	deciduous small teeth
 HP:0006349	agenesis dentition permanent
 HP:0006349	development failure permanent teeth
 HP:0006349	development failure secondary teeth
@@ -12074,9 +12034,6 @@ HP:0006480	loss premature teeth
 HP:0006480	early loss tooth
 HP:0006480	exfoliation premature teeth
 HP:0006480	loss premature tooth
-HP:0006481	abnormality baby teeth
-HP:0006481	abnormality milk teeth
-HP:0006481	abnormality deciduous teeth
 HP:0006481	abnormality primary teeth
 HP:0006482	dental malformations
 HP:0006482	misshapened teeth
@@ -13707,6 +13664,7 @@ HP:0008002	abnormality macular pigmentation
 HP:0008002	changes macular pigmentary
 HP:0008003	jerky movements ocular pursuit
 HP:0008003	jerky pursuit smooth
+HP:0008007	glaucoma primary
 HP:0008009	eyelashes row triple
 HP:0008009	eyelashes rows three
 HP:0008011	cornea opacification peripheral
@@ -13963,10 +13921,7 @@ HP:0008204	cell precocious puberty sertoli tumour with
 HP:0008204	cell precocious puberty sertoli tumor with
 HP:0008205	but dependent diabetes insulin ketosis resistant
 HP:0008207	adrenocortical failure primary
-HP:0008207	addison disease
 HP:0008207	adrenal insufficiency primary
-HP:0008207	adrenocortical insufficiency
-HP:0008207	addison disease s
 HP:0008208	enlarged glands parathyroid
 HP:0008208	hyperplasia parathyroid
 HP:0008209	insufficiency ovarian primary
@@ -19729,27 +19684,13 @@ HP:0011045	central incisor maxillary missing permanent
 HP:0011045	central development failure incisor maxillary permanent
 HP:0011045	adult agenesis central incisor maxillary
 HP:0011045	absence front permanent tooth upper
-HP:0011046	agenesis central deciduous incisor maxillary
 HP:0011046	absence central incisor maxillary primary
 HP:0011046	central development failure incisor maxillary primary
-HP:0011046	central deciduous development failure incisor maxillary
-HP:0011046	absence central deciduous incisor maxillary
-HP:0011046	central deciduous incisor maxillary missing
-HP:0011046	front milk missing tooth upper
 HP:0011046	agenesis central incisor maxillary primary
 HP:0011046	central incisor maxillary missing primary
-HP:0011046	absence baby front tooth upper
-HP:0011046	baby front missing tooth upper
-HP:0011047	central incisor lower milk missing tooth
-HP:0011047	agenesis central deciduous incisor lower
 HP:0011047	agenesis central incisor lower primary
-HP:0011047	front lower milk missing tooth
-HP:0011047	absence central deciduous incisor mandibular
 HP:0011047	central development failure incisor mandibular primary
-HP:0011047	central deciduous incisor mandibular missing
 HP:0011047	absence central incisor mandibular primary
-HP:0011047	baby front lower missing tooth
-HP:0011047	central deciduous development failure incisor mandibular
 HP:0011047	central incisor mandibular missing primary
 HP:0011047	front lower missing primary tooth
 HP:0011047	agenesis central incisor mandibular primary
@@ -19763,14 +19704,10 @@ HP:0011048	absence front lower permanent tooth
 HP:0011048	central incisor lower missing permanent
 HP:0011048	central incisor mandibular missing permanent
 HP:0011048	adult central incisor lower missing
-HP:0011049	deciduous incisor lateral maxillary missing
-HP:0011049	absence deciduous incisor lateral maxillary
-HP:0011049	deciduous development failure incisor lateral maxillary
 HP:0011049	agenesis incisor lateral maxillary primary
 HP:0011049	absence incisor lateral maxillary primary
 HP:0011049	incisor lateral maxillary missing primary
 HP:0011049	development failure incisor lateral maxillary primary
-HP:0011049	agenesis deciduous incisor lateral maxillary
 HP:0011050	development failure incisor lateral permanent upper
 HP:0011050	development failure incisor lateral maxillary permanent
 HP:0011050	absence incisor lateral maxillary permanent
@@ -19845,7 +19782,6 @@ HP:0011059	area disease gum limited
 HP:0011059	disease localised periodontal
 HP:0011059	localized periodontitis
 HP:0011059	localised periodontitis
-HP:0011060	baby dentinogenesis imperfecta teeth
 HP:0011060	dentinogenesis imperfecta limited primary teeth to
 HP:0011061	abnormality structure tooth
 HP:0011061	abnormality part tooth
@@ -19938,12 +19874,8 @@ HP:0011081	incisor increased width
 HP:0011081	hypertrophy incisor
 HP:0011082	incisor pointed primary
 HP:0011082	conical incisor primary
-HP:0011082	baby cone front shaped tooth
 HP:0011082	incisor peg primary shaped
-HP:0011082	conical deciduous incisor
-HP:0011082	baby front pointed tooth
 HP:0011082	front primary shark tooth
-HP:0011082	baby front peg shaped tooth
 HP:0011082	conoid incisor primary
 HP:0011083	front shark tooth upper
 HP:0011083	front peg shaped tooth upper
@@ -19960,9 +19892,7 @@ HP:0011085	enamel immature tooth
 HP:0011085	enamel soft tooth
 HP:0011085	dental enamel hypomature
 HP:0011085	soft teeth
-HP:0011086	adult baby dentinogenesis imperfecta teeth
 HP:0011086	dentinogenesis imperfecta permanent primary teeth
-HP:0011086	both dentinogenesis imperfecta sets teeth
 HP:0011087	cusp talon
 HP:0011087	cusps talon
 HP:0011087	cusp extra front inside on tooth
@@ -20808,19 +20738,13 @@ HP:0011449	clonus knee
 HP:0011449	clonus patellar
 HP:0011450	central infection nervous system
 HP:0011450	cns infection unusual
-HP:0011451	circumference head small
-HP:0011451	microcephaly
-HP:0011451	age circumference for gestational head small
 HP:0011451	microcephaly primary
 HP:0011451	at birth circumference head present small
-HP:0011451	head small
 HP:0011451	at birth head present small
 HP:0011451	at birth circumference decreased head present
 HP:0011451	at birth cranium present small
-HP:0011451	circumference decreased head
 HP:0011451	at birth microcephaly present
 HP:0011451	at birth present skull small
-HP:0011451	skull small
 HP:0011452	abnormality ear functional middle
 HP:0011453	abnormality incus
 HP:0011454	abnormality malleus
@@ -22193,21 +22117,12 @@ HP:0012222	arachnoid hemangiomatosis
 HP:0012223	ruptured spleen
 HP:0012223	rupture splenic
 HP:0012224	circulating complexes immune
-HP:0012225	deciduous development failure some teeth
-HP:0012225	decreased milk number teeth
 HP:0012225	decreased number primary teeth
 HP:0012225	oligodontia primary teeth
-HP:0012225	baby decreased number teeth
-HP:0012225	deciduous fewer normal teeth than
-HP:0012225	anodontia deciduous partial teeth
 HP:0012225	fewer normal primary teeth than
-HP:0012225	baby missing some teeth
-HP:0012225	milk missing some teeth
 HP:0012225	missing primary some teeth
-HP:0012225	baby fewer normal teeth than
 HP:0012225	anodontia partial primary teeth
 HP:0012225	development failure primary some teeth
-HP:0012225	deciduous decreased number teeth
 HP:0012226	ovarian teratoma
 HP:0012227	stricture urethral
 HP:0012228	headache tension type
@@ -22532,8 +22447,6 @@ HP:0012411	growth hair premature pubic
 HP:0012411	premature pubarche
 HP:0012412	adrenarche premature
 HP:0012413	incisor primary syphilitic
-HP:0012413	deciduous front notched tooth
-HP:0012413	baby front notched tooth
 HP:0012413	front notched primary tooth
 HP:0012413	central incisor notched primary
 HP:0012414	atrophy duodenal
@@ -34344,13 +34257,8 @@ HP:0200158	development failure incisor lateral mandibular permanent
 HP:0200158	absence adult incisor lateral mandibular
 HP:0200158	absence incisor lateral mandibular permanent
 HP:0200159	incisor lateral mandibular missing primary
-HP:0200159	deciduous incisor lateral mandibular missing
-HP:0200159	deciduous development failure incisor lateral mandibular
 HP:0200159	absence incisor lateral mandibular primary
-HP:0200159	absence baby front lower tooth
-HP:0200159	agenesis deciduous incisor lateral mandibular
 HP:0200159	development failure incisor lateral mandibular primary
-HP:0200159	absence deciduous incisor lateral mandibular
 HP:0200159	agenesis incisor lateral mandibular primary
 HP:0200160	absence incisor maxillary
 HP:0200160	absence front tooth upper
