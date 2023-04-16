@@ -1,69 +1,42 @@
-from __future__ import annotations  # For Python 3.7
-#from memory_profiler import profile
-import streamlit as st
-from PIL import Image
-import pandas as pd
-import re
 import json
-import nltk
-import stanza
+import re
 from dataclasses import dataclass
-from typing import List
-import transformers
-from typing import Sequence
+from typing import Dict, List, Sequence
+
+import nltk
+import pandas as pd
 import spacy
-from presidio_analyzer import AnalyzerEngine, RecognizerRegistry, PatternRecognizer
+import stanza
+
+# from memory_profiler import profile
+import streamlit as st
+import transformers
+from clinphen_src import get_phenotypes_lf
+from presidio_analyzer import AnalyzerEngine, PatternRecognizer
 from presidio_analyzer.nlp_engine import NlpEngineProvider
 from presidio_anonymizer import AnonymizerEngine
-from presidio_anonymizer.entities import RecognizerResult, OperatorConfig
-import subprocess
-from clinphen_src import get_phenotypes_lf
+from presidio_anonymizer.entities import OperatorConfig
 from unidecode import unidecode
+from utilities.web_utilities import display_page_title, display_sidebar
 
 # -- Set page config
-apptitle = "Linguo Franca"
+app_title: str = "Linguo Franca"
 
-st.set_page_config(page_title=apptitle, page_icon=":incoming_envelope:", layout="wide")
-
-# -- Set Sidebar
-image_pg = Image.open("img/logo_300x.png")
-st.sidebar.image(image_pg, caption=None, width=200)
-st.sidebar.title("Linguo Franca")
-
-st.sidebar.header(
-    "Share medical consultation letter automatically translated, de-identified and summarized using deep learning"
-)
-
-st.sidebar.markdown(
-    """
- Currently only working from :fr: to :gb:.  
-
- If any questions or suggestions, please contact: [kevin.yauy@chu-montpellier.fr](kevin.yauy@chu-montpellier.fr) and [lucas.gauthier@chu-lyon.fr](lucas.gauthier@chu-lyon.fr) 
-
- Code source is available in GitHub:
- [https://github.com/kyauy/Linguo-Franca](https://github.com/kyauy/Linguo-Franca)
-
- Linguo Franca is an initiative from:
-"""
-)
-image_univ = Image.open("img/logosfacmontpellier.png")
-st.sidebar.image(image_univ, caption=None, width=190)
-
-image_chu = Image.open("img/CHU-montpellier.png")
-st.sidebar.image(image_chu, caption=None, width=95)
+display_page_title(app_title)
+display_sidebar()
 
 
 @st.cache_resource(max_entries=30)
 def get_models():
     stanza.download("fr")
     try:
-        nltk.data.find('omw-1.4')
+        nltk.data.find("omw-1.4")
     except LookupError:
-        nltk.download('omw-1.4')
+        nltk.download("omw-1.4")
     try:
-        nltk.data.find('wordnet')
+        nltk.data.find("wordnet")
     except LookupError:
-        nltk.download('wordnet')
+        nltk.download("wordnet")
 
     spacy_model_name = "en_core_web_lg"
     if not spacy.util.is_package(spacy_model_name):
@@ -72,12 +45,13 @@ def get_models():
         print(spacy_model_name + " already downloaded")
     return "Done"
 
+
 @st.cache_data(max_entries=30)
 def get_cities_list():
-    cities = pd.read_csv('data/proper_noun_location_sort.csv')
-    cities.columns=['ville']
+    cities = pd.read_csv("data/proper_noun_location_sort.csv")
+    cities.columns = ["ville"]
     whole_cities_patterns = []
-    list_cities = cities['ville'].to_list()
+    list_cities = cities["ville"].to_list()
     for element in list_cities:
         whole_cities_patterns.append(element)
         whole_cities_patterns.append(element.lower().capitalize())
@@ -89,36 +63,38 @@ def get_cities_list():
     del list_cities
     return whole_cities_patterns
 
+
 @st.cache_data(max_entries=30)
 def get_list_not_deidentify():
     nom_propre_data = pd.read_csv(
         "data/exception_list_anonymization.tsv", sep="\t", header=None
     ).astype(str)
 
-    drug_data = pd.read_csv(
-        "data/drug_name.tsv", sep="\t", header=None
-    ).astype(str)
+    drug_data = pd.read_csv("data/drug_name.tsv", sep="\t", header=None).astype(str)
 
-    gene_data = pd.read_csv(
-        "data/gene_name.tsv", sep="\t", header=None
-    ).astype(str)
+    gene_data = pd.read_csv("data/gene_name.tsv", sep="\t", header=None).astype(str)
 
-    nom_propre_list = nom_propre_data[0].to_list() + drug_data[0].to_list() + gene_data[0].to_list() + [
-        "PN",
-        "TN",
-        "SD",
-        "PCN",
-        "cher",
-        "chere",
-        "CAS",
-        "INDEX",
-        "APGAR",
-        "M",
-        "Ms",
-        "Mr",
-        "Behçet",
-        "hypoacousia",
-    ]
+    nom_propre_list = (
+        nom_propre_data[0].to_list()
+        + drug_data[0].to_list()
+        + gene_data[0].to_list()
+        + [
+            "PN",
+            "TN",
+            "SD",
+            "PCN",
+            "cher",
+            "chere",
+            "CAS",
+            "INDEX",
+            "APGAR",
+            "M",
+            "Ms",
+            "Mr",
+            "Behçet",
+            "hypoacousia",
+        ]
+    )
     nom_propre = [x.lower() for x in nom_propre_list]
 
     del nom_propre_data
@@ -138,7 +114,9 @@ def config_deidentify():
     # Create NLP engine based on configuration
     provider = NlpEngineProvider(nlp_configuration=configuration)
     nlp_engine = provider.create_engine()
-    frcity_recognizer = PatternRecognizer(supported_entity="FRENCH_CITY", deny_list=cities_list)
+    frcity_recognizer = PatternRecognizer(
+        supported_entity="FRENCH_CITY", deny_list=cities_list
+    )
 
     analyzer = AnalyzerEngine(nlp_engine=nlp_engine, supported_languages=["en"])
     analyzer.registry.add_recognizer(frcity_recognizer)
@@ -156,10 +134,12 @@ def get_nlp_marian():
     marian_fr_en = Translator("fr", "en")
     return nlp_fr, marian_fr_en
 
-#@st.cache_resource()
-#def get_nlp_en():
+
+# @st.cache_resource()
+# def get_nlp_en():
 #    nlp_en = stanza.Pipeline("en", processors="tokenize")
 #    return nlp_en
+
 
 @dataclass(frozen=True)
 class SentenceBoundary:
@@ -170,33 +150,42 @@ class SentenceBoundary:
         return self.prefix + self.text
 
 
-@dataclass(frozen=True)
+@dataclass
 class SentenceBoundaries:
-    sentence_boundaries: List[SentenceBoundary]
+    def __init__(self) -> None:
+        self._sentence_boundaries: List[SentenceBoundary] = []
 
-    @classmethod
-    def from_doc(cls, doc: stanza.Document) -> SentenceBoundaries:
-        sentence_boundaries = []
+    @property
+    def sentence_boundaries(self):
+        return self._sentence_boundaries
+
+    def update_sentence_boundaries(
+        self, sentence_boundaries_list: List[SentenceBoundary]
+    ):
+        self._sentence_boundaries = sentence_boundaries_list
+        return self
+
+    def from_doc(self, doc: stanza.Document):
         start_idx = 0
         for sent in doc.sentences:
-            sentence_boundaries.append(
+            self.sentence_boundaries.append(
                 SentenceBoundary(
                     text=sent.text,
                     prefix=doc.text[start_idx : sent.tokens[0].start_char],
                 )
             )
             start_idx = sent.tokens[-1].end_char
-        sentence_boundaries.append(
+        self.sentence_boundaries.append(
             SentenceBoundary(text="", prefix=doc.text[start_idx:])
         )
-        return cls(sentence_boundaries)
+        return self
 
     @property
     def nonempty_sentences(self) -> List[str]:
         return [item.text for item in self.sentence_boundaries if item.text]
 
-    def map(self, d: dict[str, str]) -> SentenceBoundaries:
-        return SentenceBoundaries(
+    def map_sentence_boundaries(self, d: Dict[str, str]) -> List:
+        return SentenceBoundaries().update_sentence_boundaries(
             [
                 SentenceBoundary(text=d.get(sb.text, sb.text), prefix=sb.prefix)
                 for sb in self.sentence_boundaries
@@ -205,6 +194,7 @@ class SentenceBoundaries:
 
     def __str__(self) -> str:
         return "".join(map(str, self.sentence_boundaries))
+
 
 @st.cache_resource(max_entries=30)
 def minibatch(seq, size):
@@ -233,7 +223,7 @@ class Translator:
 
     def sentencize(self, texts: Sequence[str]) -> List[SentenceBoundaries]:
         return [
-            SentenceBoundaries.from_doc(self.sentencizer.process(text))
+            SentenceBoundaries().from_doc(doc=self.sentencizer.process(text))
             for text in texts
         ]
 
@@ -260,10 +250,12 @@ class Translator:
                 self.tokenizer.decode(t, skip_special_tokens=True)
                 for t in translate_tokens
             ]
-            for (text, translated) in zip(text_batch, translate_batch):
+            for text, translated in zip(text_batch, translate_batch):
                 translations[text] = translated
 
-        return [str(text.map(translations)) for text in text_sentences]
+        return [
+            str(text.map_sentence_boundaries(translations)) for text in text_sentences
+        ]
 
 
 @st.cache_data(max_entries=30)
@@ -273,7 +265,29 @@ def anonymize_analyzer(MarianText_letter, _analyzer, nom_propre, nom, prenom):
     analyzer_results_keep = []
     analyzer_results_return = []
     analyzer_results_saved = []
-    analyzer_results = _analyzer.analyze(text=MarianText_letter, language="en", entities=["DATE_TIME", "PERSON", "FRENCH_CITY"], allow_list=['evening', 'day', 'the day', 'the age of', 'age', 'years', 'week', 'years old', 'months', 'hours', 'night', 'noon', 'nights', 'tomorrow', 'today', 'yesterday'])
+    analyzer_results = _analyzer.analyze(
+        text=MarianText_letter,
+        language="en",
+        entities=["DATE_TIME", "PERSON", "FRENCH_CITY"],
+        allow_list=[
+            "evening",
+            "day",
+            "the day",
+            "the age of",
+            "age",
+            "years",
+            "week",
+            "years old",
+            "months",
+            "hours",
+            "night",
+            "noon",
+            "nights",
+            "tomorrow",
+            "today",
+            "yesterday",
+        ],
+    )
     len_to_add = 0
     analyser_results_to_sort = {}
     i = 0
@@ -283,28 +297,31 @@ def anonymize_analyzer(MarianText_letter, _analyzer, nom_propre, nom, prenom):
             analyser_results_to_sort[i] = element.start
             detect_duplicated.append(element.start)
         else:
-            pass    
+            pass
         i = i + 1
     sorted_tuples = sorted(analyser_results_to_sort.items(), key=lambda x: x[1])
     sorted_dict = {k: v for k, v in sorted_tuples}
     print(sorted_dict)
-    exception_list_presidio = ['age', 'year', 'month', 'day', 'hour', 'week']
+    exception_list_presidio = ["age", "year", "month", "day", "hour", "week"]
 
     for element_raw in sorted_dict:
         element = analyzer_results[element_raw]
         word = MarianText_letter[element.start : element.end]
         exception_detected = [e for e in exception_list_presidio if e in word.lower()]
-        if word.count('/') == 1 or word.count('/') > 2:
-            exception_detected.append('/ or ///')
+        if word.count("/") == 1 or word.count("/") > 2:
+            exception_detected.append("/ or ///")
         if len(exception_detected) == 0:
             if word.lower().strip() in nom_propre:
-                word_to_replace = "**:green[" + word + "]** `[" + element.entity_type + "]`"
+                word_to_replace = (
+                    "**:green[" + word + "]** `[" + element.entity_type + "]`"
+                )
                 MarianText_anonymize_letter = (
                     MarianText_anonymize_letter[: element.start + len_to_add]
                     + word_to_replace
                     + MarianText_anonymize_letter[element.end + len_to_add :]
                 )
-                analyzer_results_saved.append({
+                analyzer_results_saved.append(
+                    {
                         "name": nom,
                         "surname": prenom,
                         "type": "deidentification",
@@ -312,16 +329,20 @@ def anonymize_analyzer(MarianText_letter, _analyzer, nom_propre, nom, prenom):
                         "correction": element.entity_type,
                         "lf_detected": False,
                         "manual_validation": False,
-                    })
-               # analyzer_results_saved.append(str(element) + ", word:" + word)
+                    }
+                )
+            # analyzer_results_saved.append(str(element) + ", word:" + word)
             else:
-                word_to_replace = "**:red[" + word + "]** `[" + element.entity_type + "]`"
+                word_to_replace = (
+                    "**:red[" + word + "]** `[" + element.entity_type + "]`"
+                )
                 MarianText_anonymize_letter = (
                     MarianText_anonymize_letter[: element.start + len_to_add]
                     + word_to_replace
                     + MarianText_anonymize_letter[element.end + len_to_add :]
                 )
-                analyzer_results_keep.append({
+                analyzer_results_keep.append(
+                    {
                         "name": nom,
                         "surname": prenom,
                         "type": "deidentification",
@@ -329,21 +350,24 @@ def anonymize_analyzer(MarianText_letter, _analyzer, nom_propre, nom, prenom):
                         "correction": element.entity_type,
                         "lf_detected": True,
                         "manual_validation": True,
-                    })
-                #analyzer_results_keep.append(str(element) + ", word:" + word)
+                    }
+                )
+                # analyzer_results_keep.append(str(element) + ", word:" + word)
                 analyzer_results_return.append(element)
             len_to_add = len_to_add + len(word_to_replace) - len(word)
         else:
-            analyzer_results_saved.append({
-                        "name": nom,
-                        "surname": prenom,
-                        "type": "deidentification",
-                        "value": word,
-                        "correction": element.entity_type,
-                        "lf_detected": False,
-                        "manual_validation": False,
-                    })
-            #analyzer_results_saved.append(str(element) + ", word:" + word)
+            analyzer_results_saved.append(
+                {
+                    "name": nom,
+                    "surname": prenom,
+                    "type": "deidentification",
+                    "value": word,
+                    "correction": element.entity_type,
+                    "lf_detected": False,
+                    "manual_validation": False,
+                }
+            )
+            # analyzer_results_saved.append(str(element) + ", word:" + word)
     del analyzer_results
     del len_to_add
     del exception_list_presidio
@@ -435,7 +459,7 @@ def add_space_to_stroph(texte, _nlp):
 
 @st.cache_data(max_entries=60)
 def add_space_to_comma_endpoint(texte, _nlp):
-    text_fr_comma = add_space_to_comma(texte,_nlp)
+    text_fr_comma = add_space_to_comma(texte, _nlp)
     text_fr_comma_endpoint = add_space_to_endpoint(text_fr_comma, _nlp)
     text_fr_comma_endpoint_leftpc = add_space_to_leftp(text_fr_comma_endpoint, _nlp)
     text_fr_comma_endpoint_leftpc_right_pc = add_space_to_rightp(
@@ -449,14 +473,16 @@ def add_space_to_comma_endpoint(texte, _nlp):
     del text_fr_comma_endpoint_leftpc
     return text_fr_comma_endpoint_leftpc_right_pc
 
+
 @st.cache_data(max_entries=30)
 def get_abbreviation_dict_correction():
-    #dict_correction = {}
+    # dict_correction = {}
     with open("data/fr_abbreviations.json", "r") as outfile:
         hpo_abbreviations = json.load(outfile)
-    #for key, value in hpo_abbreviations.items():
+    # for key, value in hpo_abbreviations.items():
     #    dict_correction[" " + key + " "] = " " + value + " "
-    return hpo_abbreviations#dict_correction
+    return hpo_abbreviations  # dict_correction
+
 
 @st.cache_data(max_entries=30)
 def get_translation_dict_correction():
@@ -487,7 +513,7 @@ def get_translation_dict_correction():
         "\n": " ",
         "associated": "with",
         "Mr.": "Mr",
-        "Mrs.":  "Mrs",
+        "Mrs.": "Mrs",
     }
 
     dict_correction = {}
@@ -505,7 +531,7 @@ def get_translation_dict_correction():
 
     for key, value in hpo_translated_abbreviations.items():
         dict_correction[" " + key + " "] = " " + value + " "
-    
+
     del hpo_translated
     del hpo_translated_abbreviations
     return dict_correction
@@ -516,7 +542,7 @@ def change_name_patient_abbreviations(courrier, nom, prenom, abbreviations_dict)
     courrier_name = courrier
     dict_correction_name_abbreviations = {
         prenom: "CAS",
-        nom : "INDEX",
+        nom: "INDEX",
         "M.": "M",
         "Mme.": "Mme",
         "Mlle.": "Mlle",
@@ -524,41 +550,47 @@ def change_name_patient_abbreviations(courrier, nom, prenom, abbreviations_dict)
         "Dr": "Docteur",
         "Pr.": "Professeur",
         "Pr": "Professeur",
-    }     
+    }
     for key, value in abbreviations_dict.items():
-        dict_correction_name_abbreviations[key] = value# + " [" + key + "]"
-    
+        dict_correction_name_abbreviations[key] = value  # + " [" + key + "]"
+
     list_replaced = []
     splitted_courrier = courrier_name.split()
     for i in splitted_courrier:
-        #print(i)
+        # print(i)
         for key, value in dict_correction_name_abbreviations.items():
-            i_check = i.lower().strip().replace(',','').replace('.', '')
+            i_check = i.lower().strip().replace(",", "").replace(".", "")
             if i_check == key.lower().strip():
                 if i_check == nom or i_check == prenom:
-                    list_replaced.append({
-                        "name": nom,
-                        "surname": prenom,
-                        "type": "index_case",
-                        "value": i.strip().replace(',','').replace('.', ''),
-                        "correction": value,
-                        "lf_detected": True,
-                        "manual_validation": True,
-                    })
+                    list_replaced.append(
+                        {
+                            "name": nom,
+                            "surname": prenom,
+                            "type": "index_case",
+                            "value": i.strip().replace(",", "").replace(".", ""),
+                            "correction": value,
+                            "lf_detected": True,
+                            "manual_validation": True,
+                        }
+                    )
                 else:
-                     list_replaced.append({
-                        "name": nom,
-                        "surname": prenom,
-                        "type": "abbreviations",
-                        "value": i.strip().replace(',','').replace('.', ''),
-                        "correction": value,
-                        "lf_detected": True,
-                        "manual_validation": True,
-                    })                   
-                #list_replaced.append(
+                    list_replaced.append(
+                        {
+                            "name": nom,
+                            "surname": prenom,
+                            "type": "abbreviations",
+                            "value": i.strip().replace(",", "").replace(".", ""),
+                            "correction": value,
+                            "lf_detected": True,
+                            "manual_validation": True,
+                        }
+                    )
+                # list_replaced.append(
                 #    'Abbreviation or patient name ' + i + ' replaced by ' + value
-                #)
-                courrier_name = courrier_name.replace(i.strip().replace(',','').replace('.', ''), value)
+                # )
+                courrier_name = courrier_name.replace(
+                    i.strip().replace(",", "").replace(".", ""), value
+                )
     del dict_correction_name_abbreviations
     del splitted_courrier
     return courrier_name, list_replaced
@@ -580,29 +612,37 @@ def correct_marian(MarianText_space, dict_correction, nom, prenom):
     list_replaced = []
     for key, value in dict_correction.items():
         if key in MarianText:
-            list_replaced.append({
-                        "name": nom,
-                        "surname": prenom,
-                        "type": "marian_correction",
-                        "value": key,
-                        "correction": value,
-                        "lf_detected": True,
-                        "manual_validation": True,
-                    }) 
-            #list_replaced.append(
+            list_replaced.append(
+                {
+                    "name": nom,
+                    "surname": prenom,
+                    "type": "marian_correction",
+                    "value": key,
+                    "correction": value,
+                    "lf_detected": True,
+                    "manual_validation": True,
+                }
+            )
+            # list_replaced.append(
             #    'Marian translation replaced "' + key + '" by "' + value
-            #)
+            # )
             MarianText = MarianText.replace(key, value)
     return MarianText, list_replaced
 
 
 @st.cache_data(max_entries=30)
-def translate_letter(courrier, nom, prenom, _nlp, _marian_fr_en, dict_correction, abbreviation_dict):
-    #courrier_space = add_space_to_comma_endpoint(courrier, _nlp)
-    courrier_name, list_replaced_abb_name = change_name_patient_abbreviations(courrier, nom, prenom, abbreviation_dict)
+def translate_letter(
+    courrier, nom, prenom, _nlp, _marian_fr_en, dict_correction, abbreviation_dict
+):
+    # courrier_space = add_space_to_comma_endpoint(courrier, _nlp)
+    courrier_name, list_replaced_abb_name = change_name_patient_abbreviations(
+        courrier, nom, prenom, abbreviation_dict
+    )
     MarianText_raw = translate_marian(courrier_name, _nlp, _marian_fr_en)
     MarianText_space = add_space_to_comma_endpoint(MarianText_raw, _nlp)
-    MarianText, list_replaced = correct_marian(MarianText_space, dict_correction, nom, prenom)
+    MarianText, list_replaced = correct_marian(
+        MarianText_space, dict_correction, nom, prenom
+    )
     del MarianText_raw
     del MarianText_space
     return MarianText, list_replaced, list_replaced_abb_name
@@ -626,26 +666,36 @@ def reformat_to_letter(text, _nlp):
 def convert_df(df):
     return df.to_csv(sep="\t", index=False).encode("utf-8")
 
+
 @st.cache_data(max_entries=60)
 def convert_df_no_header(df):
     return df.to_csv(sep="\t", index=False, header=None).encode("utf-8")
 
+
 @st.cache_data(max_entries=60)
 def convert_json(df):
-    dict_return = {"features":[]}
+    dict_return = {"features": []}
     if len(df) > 0:
-        df_dict_list = df[['HPO ID', 'Phenotype name']].to_dict(orient='index')
+        df_dict_list = df[["HPO ID", "Phenotype name"]].to_dict(orient="index")
         for key, value in df_dict_list.items():
-            if len(value['HPO ID']) > 0:
-                dict_return['features'].append({'id': value['HPO ID'], 'observed': 'yes', 'label': value['Phenotype name'], 'type': "phenotype"})
+            if len(value["HPO ID"]) > 0:
+                dict_return["features"].append(
+                    {
+                        "id": value["HPO ID"],
+                        "observed": "yes",
+                        "label": value["Phenotype name"],
+                        "type": "phenotype",
+                    }
+                )
         return json.dumps(dict_return)
     else:
         return json.dumps(dict_return)
 
+
 @st.cache_data(max_entries=60)
 def convert_list_phenogenius(df):
     if len(df) > 0:
-        return ",".join(df['HPO ID'].to_list())
+        return ",".join(df["HPO ID"].to_list())
     else:
         return "No HPO in letters."
 
@@ -685,7 +735,9 @@ def add_biometrics(text, _nlp):
                         print(height_sd_raw)
                     height_sd = re.findall("m(.*?)s", height_sd_raw)[0]
                     print(height_sd)
-                    num_height_sd = re.findall("\(\s*([-+]?\d+(?:\.\d+)?)\s*", height_sd)[0]
+                    num_height_sd = re.findall(
+                        "\(\s*([-+]?\d+(?:\.\d+)?)\s*", height_sd
+                    )[0]
                     height_sd = float(num_height_sd)
                     print(height_sd)
                     if height_sd >= 2:
@@ -747,23 +799,27 @@ def add_biometrics(text, _nlp):
     del keep_element
     return " ".join(cutsentence_with_biometrics_return), additional_terms
 
-#@profile
+
+# @profile
 @st.cache_data(max_entries=30)
 def main_function(inputStr):
-  hpo_to_name = get_phenotypes_lf.getNames()
-  returnString, returnStringUnsafe = get_phenotypes_lf.extract_phenotypes(inputStr, hpo_to_name)
-  returnDf = get_phenotypes_lf.get_dataframe_from_clinphen(returnString)
-  returnDfUnsafe = get_phenotypes_lf.get_dataframe_from_clinphen(returnStringUnsafe)
-  del hpo_to_name
-  del returnString
-  del returnStringUnsafe
-  return returnDf, returnDfUnsafe
+    hpo_to_name = get_phenotypes_lf.getNames()
+    returnString, returnStringUnsafe = get_phenotypes_lf.extract_phenotypes(
+        inputStr, hpo_to_name
+    )
+    returnDf = get_phenotypes_lf.get_dataframe_from_clinphen(returnString)
+    returnDfUnsafe = get_phenotypes_lf.get_dataframe_from_clinphen(returnStringUnsafe)
+    del hpo_to_name
+    del returnString
+    del returnStringUnsafe
+    return returnDf, returnDfUnsafe
+
 
 models_status = get_models()
 cities_list = get_cities_list()
-#print(cities_list)
+# print(cities_list)
 nlp_fr, marian_fr_en = get_nlp_marian()
-#nlp_en = get_nlp_en()
+# nlp_en = get_nlp_en()
 dict_correction = get_translation_dict_correction()
 dict_abbreviation_correction = get_abbreviation_dict_correction()
 nom_propre = get_list_not_deidentify()
@@ -780,18 +836,25 @@ with st.form("my_form"):
     with c2:
         prenom = st.text_input("Prénom du patient", "John", key="surname")
     courrier = st.text_area(
-        "Courrier à coller", "Chers collegues, j'ai recu en consultation M. John Doe né le 14/07/1789 pour une fièvre récurrente et une maladie de Crohn. Il a pour antécédent des epistaxis recurrents. Parmi les antécédants familiaux, sa maman a présenté un cancer des ovaires. Il mesure 1.90 m (+2.5  DS),  pèse 93 kg (+3.6 DS) et son PC est à 57 cm (+0DS) ...", height=200, key="letter"
+        "Courrier à coller",
+        "Chers collegues, j'ai recu en consultation M. John Doe né le 14/07/1789 pour une fièvre récurrente et une maladie de Crohn. Il a pour antécédent des epistaxis recurrents. Parmi les antécédants familiaux, sa maman a présenté un cancer des ovaires. Il mesure 1.90 m (+2.5  DS),  pèse 93 kg (+3.6 DS) et son PC est à 57 cm (+0DS) ...",
+        height=200,
+        key="letter",
     )
 
-    submit_button = st.form_submit_button(
-        label="Submit",
-    )
+    submit_button = st.form_submit_button(label="Submit")
 
 
 if submit_button or st.session_state.load_state:
     st.session_state.load_state = True
     MarianText, list_replaced, list_replaced_abb_name = translate_letter(
-        courrier, nom, prenom, nlp_fr, marian_fr_en, dict_correction, dict_abbreviation_correction
+        courrier,
+        nom,
+        prenom,
+        nlp_fr,
+        marian_fr_en,
+        dict_correction,
+        dict_abbreviation_correction,
     )
     MarianText_letter = reformat_to_letter(MarianText, nlp_fr)
     del MarianText
@@ -805,10 +868,10 @@ if submit_button or st.session_state.load_state:
     ) = anonymize_analyzer(MarianText_letter, analyzer, nom_propre, nom, prenom)
     with st.expander("See country abbreviation and name correction"):
         abbreviations_check = st.experimental_data_editor(
-        pd.DataFrame(list_replaced_abb_name),
-        num_rows="dynamic",
-        key="abbreviation_editor",
-        #use_container_width=True,
+            pd.DataFrame(list_replaced_abb_name),
+            num_rows="dynamic",
+            key="abbreviation_editor",
+            # use_container_width=True,
         )
 
         st.download_button(
@@ -820,10 +883,10 @@ if submit_button or st.session_state.load_state:
         )
     with st.expander("See translation tool correction"):
         translation_check = st.experimental_data_editor(
-        pd.DataFrame(list_replaced),
-        num_rows="dynamic",
-        key="translation_editor",
-        #use_container_width=True,
+            pd.DataFrame(list_replaced),
+            num_rows="dynamic",
+            key="translation_editor",
+            # use_container_width=True,
         )
 
         st.download_button(
@@ -832,13 +895,13 @@ if submit_button or st.session_state.load_state:
             nom + "_" + prenom + "_translations_check.tsv",
             "text/csv",
             key="download-translation-correction",
-        )    
+        )
     with st.expander("See de-identified elements"):
         deidentification_check = st.experimental_data_editor(
-        pd.DataFrame(analyzer_results_keep + analyzer_results_saved),
-        num_rows="dynamic",
-        key="deidentification_editor",
-        #use_container_width=True,
+            pd.DataFrame(analyzer_results_keep + analyzer_results_saved),
+            num_rows="dynamic",
+            key="deidentification_editor",
+            # use_container_width=True,
         )
 
         st.download_button(
@@ -847,11 +910,11 @@ if submit_button or st.session_state.load_state:
             nom + "_" + prenom + "_deidentification_check.tsv",
             "text/csv",
             key="download-deidentification-correction",
-        )   
-        #st.write("De-identified elements")
-        #st.write(analyzer_results_keep)
-        #st.write("Keep elements")
-        #st.write(analyzer_results_saved)
+        )
+        # st.write("De-identified elements")
+        # st.write(analyzer_results_keep)
+        # st.write("Keep elements")
+        # st.write(analyzer_results_saved)
 
     st.caption(MarianText_anonymize_letter_analyze)
 
@@ -909,17 +972,17 @@ if submit_button or st.session_state.load_state:
 
     with st.expander("See unsafe extracted terms"):
         clinphen_unsafe_check_raw = clinphen_unsafe
-        clinphen_unsafe_check_raw['name'] = nom
-        clinphen_unsafe_check_raw['surname'] = prenom
-        clinphen_unsafe_check_raw['type'] = 'unsafe'
-        clinphen_unsafe_check_raw['lf_detected'] = True
-        clinphen_unsafe_check_raw['manual_validation'] = False
-        clinphen_unsafe_check_raw['error'] = 'negation or relative'
+        clinphen_unsafe_check_raw["name"] = nom
+        clinphen_unsafe_check_raw["surname"] = prenom
+        clinphen_unsafe_check_raw["type"] = "unsafe"
+        clinphen_unsafe_check_raw["lf_detected"] = True
+        clinphen_unsafe_check_raw["manual_validation"] = False
+        clinphen_unsafe_check_raw["error"] = "negation or relative"
         clinphen_unsafe_check = st.experimental_data_editor(
-        clinphen_unsafe_check_raw,
-        num_rows="dynamic",
-        key="unsafe_check_editor",
-        #use_container_width=True,
+            clinphen_unsafe_check_raw,
+            num_rows="dynamic",
+            key="unsafe_check_editor",
+            # use_container_width=True,
         )
         del clinphen_unsafe
         st.download_button(
@@ -928,14 +991,14 @@ if submit_button or st.session_state.load_state:
             nom + "_" + prenom + "_unsafe_extracted_terms_check.tsv",
             "text/csv",
             key="download-unsafe-extracted-terms",
-        )    
+        )
 
-    clinphen['name'] = nom
-    clinphen['surname'] = prenom
-    clinphen['type'] = 'safe'
-    clinphen['lf_detected'] = True
-    clinphen['manual_validation'] = True
-    clinphen['error'] = None
+    clinphen["name"] = nom
+    clinphen["surname"] = prenom
+    clinphen["type"] = "safe"
+    clinphen["lf_detected"] = True
+    clinphen["manual_validation"] = True
+    clinphen["error"] = None
 
     clinphen_df = st.experimental_data_editor(
         clinphen, num_rows="dynamic", key="data_editor"
@@ -966,5 +1029,3 @@ if submit_button or st.session_state.load_state:
         "text",
         key="download-summarization-phenogenius",
     )
-
-
