@@ -8,7 +8,6 @@ import pandas as pd
 import spacy
 import stanza
 
-# from memory_profiler import profile
 import streamlit as st
 import transformers
 from clinphen_src import get_phenotypes_lf
@@ -18,6 +17,7 @@ from presidio_anonymizer import AnonymizerEngine
 from presidio_anonymizer.entities import OperatorConfig
 from unidecode import unidecode
 from utilities.web_utilities import display_page_title, display_sidebar
+import gc
 
 # -- Set page config
 app_title: str = "Linguo Franca"
@@ -26,7 +26,7 @@ display_page_title(app_title)
 display_sidebar()
 
 
-@st.cache_resource(max_entries=30)
+@st.cache_resource(max_entries=5, ttl=3600)
 def get_models():
     stanza.download("fr")
     try:
@@ -46,7 +46,7 @@ def get_models():
     return "Done"
 
 
-@st.cache_data(max_entries=30)
+@st.cache_resource(max_entries=5, ttl=3600)
 def get_cities_list():
     cities = pd.read_csv("data/proper_noun_location_sort.csv")
     cities.columns = ["ville"]
@@ -64,7 +64,7 @@ def get_cities_list():
     return whole_cities_patterns
 
 
-@st.cache_data(max_entries=30)
+@st.cache_resource(max_entries=5, ttl=3600)
 def get_list_not_deidentify():
     nom_propre_data = pd.read_csv(
         "data/exception_list_anonymization.tsv", sep="\t", header=None
@@ -104,7 +104,7 @@ def get_list_not_deidentify():
     return nom_propre
 
 
-@st.cache_resource(max_entries=30)
+@st.cache_resource(max_entries=5, ttl=3600)
 def config_deidentify():
     configuration = {
         "nlp_engine_name": "spacy",
@@ -128,7 +128,7 @@ def config_deidentify():
     return analyzer, engine
 
 
-@st.cache_resource(max_entries=30)
+@st.cache_resource(max_entries=5, ttl=3600)
 def get_nlp_marian():
     nlp_fr = stanza.Pipeline("fr", processors="tokenize")
     marian_fr_en = Translator("fr", "en")
@@ -196,7 +196,7 @@ class SentenceBoundaries:
         return "".join(map(str, self.sentence_boundaries))
 
 
-@st.cache_resource(max_entries=30)
+@st.cache_resource(max_entries=5, ttl=3600)
 def minibatch(seq, size):
     items = []
     for x in seq:
@@ -258,7 +258,7 @@ class Translator:
         ]
 
 
-@st.cache_data(max_entries=30)
+@st.cache_data(max_entries=5, ttl=3600)
 def anonymize_analyzer(MarianText_letter, _analyzer, nom_propre, nom, prenom):
     MarianText_anonymize_letter = MarianText_letter
     # st.write(MarianText_anonymize_letter)
@@ -383,7 +383,7 @@ def anonymize_analyzer(MarianText_letter, _analyzer, nom_propre, nom, prenom):
     )
 
 
-@st.cache_data(max_entries=30)
+@st.cache_data(max_entries=5, ttl=3600)
 def anonymize_engine(MarianText_letter, _analyzer_results_return, _engine, _nlp):
     result = _engine.anonymize(
         text=MarianText_letter,
@@ -397,7 +397,7 @@ def anonymize_engine(MarianText_letter, _analyzer_results_return, _engine, _nlp)
     return reformat_to_letter(result.text, _nlp)
 
 
-@st.cache_data(max_entries=60)
+@st.cache_data(max_entries=10, ttl=3600)
 def add_space_to_comma(texte, _nlp):
     text_list = []
     regex = "(?<!\d)(\,)(?!\d)(?!.*\1)"
@@ -409,7 +409,7 @@ def add_space_to_comma(texte, _nlp):
     return " ".join(text_list)
 
 
-@st.cache_data(max_entries=60)
+@st.cache_data(max_entries=10, ttl=3600)
 def add_space_to_endpoint(texte, _nlp):
     text_list = []
     regex = "(?<!\d)(\.)(?!\d)(?!.*\1)"
@@ -421,7 +421,7 @@ def add_space_to_endpoint(texte, _nlp):
     return " ".join(text_list)
 
 
-@st.cache_data(max_entries=60)
+@st.cache_data(max_entries=10, ttl=3600)
 def add_space_to_leftp(texte, _nlp):
     text_list = []
     regex = "(?<!\d)(\()(?!\d)(?!.*\1)"
@@ -433,7 +433,7 @@ def add_space_to_leftp(texte, _nlp):
     return " ".join(text_list)
 
 
-@st.cache_data(max_entries=60)
+@st.cache_data(max_entries=10, ttl=3600)
 def add_space_to_rightp(texte, _nlp):
     text_list = []
     regex = "(?<!\d)(\))(?!\d)(?!.*\1)"
@@ -445,7 +445,7 @@ def add_space_to_rightp(texte, _nlp):
     return " ".join(text_list)
 
 
-@st.cache_data(max_entries=60)
+@st.cache_data(max_entries=10, ttl=3600)
 def add_space_to_stroph(texte, _nlp):
     text_list = []
     regex = "(?<!\d)(')(?!\d)(?!.*\1)"
@@ -457,7 +457,7 @@ def add_space_to_stroph(texte, _nlp):
     return " ".join(text_list)
 
 
-@st.cache_data(max_entries=60)
+@st.cache_data(max_entries=10, ttl=3600)
 def add_space_to_comma_endpoint(texte, _nlp):
     text_fr_comma = add_space_to_comma(texte, _nlp)
     text_fr_comma_endpoint = add_space_to_endpoint(text_fr_comma, _nlp)
@@ -474,7 +474,7 @@ def add_space_to_comma_endpoint(texte, _nlp):
     return text_fr_comma_endpoint_leftpc_right_pc
 
 
-@st.cache_data(max_entries=30)
+@st.cache_resource(max_entries=5, ttl=3600)
 def get_abbreviation_dict_correction():
     # dict_correction = {}
     with open("data/fr_abbreviations.json", "r") as outfile:
@@ -484,7 +484,7 @@ def get_abbreviation_dict_correction():
     return hpo_abbreviations  # dict_correction
 
 
-@st.cache_data(max_entries=30)
+@st.cache_resource(max_entries=5, ttl=3600)
 def get_translation_dict_correction():
     dict_correction_FRspec = {
         "PC": "head circumference",
@@ -537,7 +537,7 @@ def get_translation_dict_correction():
     return dict_correction
 
 
-@st.cache_resource(max_entries=30)
+@st.cache_data(max_entries=5, ttl=3600)
 def change_name_patient_abbreviations(courrier, nom, prenom, abbreviations_dict):
     courrier_name = courrier
     dict_correction_name_abbreviations = {
@@ -596,7 +596,7 @@ def change_name_patient_abbreviations(courrier, nom, prenom, abbreviations_dict)
     return courrier_name, list_replaced
 
 
-@st.cache_resource(max_entries=30)
+@st.cache_data(max_entries=5, ttl=3600)
 def translate_marian(courrier_name, _nlp, _marian_fr_en):
     list_of_sentence = []
     for sentence in _nlp.process(courrier_name).sentences:
@@ -606,7 +606,7 @@ def translate_marian(courrier_name, _nlp, _marian_fr_en):
     return MarianText_raw
 
 
-@st.cache_resource(max_entries=30)
+@st.cache_data(max_entries=5, ttl=3600)
 def correct_marian(MarianText_space, dict_correction, nom, prenom):
     MarianText = MarianText_space
     list_replaced = []
@@ -630,7 +630,7 @@ def correct_marian(MarianText_space, dict_correction, nom, prenom):
     return MarianText, list_replaced
 
 
-@st.cache_data(max_entries=30)
+@st.cache_data(max_entries=5, ttl=3600)
 def translate_letter(
     courrier, nom, prenom, _nlp, _marian_fr_en, dict_correction, abbreviation_dict
 ):
@@ -648,7 +648,7 @@ def translate_letter(
     return MarianText, list_replaced, list_replaced_abb_name
 
 
-@st.cache_data(max_entries=60)
+@st.cache_data(max_entries=10, ttl=3600)
 def reformat_to_letter(text, _nlp):
     cutsentence = []
     for sentence in _nlp.process(text).sentences:
@@ -662,17 +662,17 @@ def reformat_to_letter(text, _nlp):
     return "  \n".join(cutsentence)
 
 
-@st.cache_data(max_entries=60)
+@st.cache_data(max_entries=10, ttl=3600)
 def convert_df(df):
     return df.to_csv(sep="\t", index=False).encode("utf-8")
 
 
-@st.cache_data(max_entries=60)
+@st.cache_data(max_entries=10, ttl=3600)
 def convert_df_no_header(df):
     return df.to_csv(sep="\t", index=False, header=None).encode("utf-8")
 
 
-@st.cache_data(max_entries=60)
+@st.cache_data(max_entries=10, ttl=3600)
 def convert_json(df):
     dict_return = {"features": []}
     if len(df) > 0:
@@ -692,7 +692,7 @@ def convert_json(df):
         return json.dumps(dict_return)
 
 
-@st.cache_data(max_entries=60)
+@st.cache_data(max_entries=10, ttl=3600)
 def convert_list_phenogenius(df):
     if len(df) > 0:
         return ",".join(df["HPO ID"].to_list())
@@ -700,7 +700,7 @@ def convert_list_phenogenius(df):
         return "No HPO in letters."
 
 
-@st.cache_data(max_entries=30)
+@st.cache_data(max_entries=5, ttl=3600)
 def add_biometrics(text, _nlp):
     cutsentence_with_biometrics = []
     cutsentence = []
@@ -801,7 +801,7 @@ def add_biometrics(text, _nlp):
 
 
 # @profile
-@st.cache_data(max_entries=30)
+@st.cache_data(max_entries=5, ttl=3600)
 def main_function(inputStr):
     hpo_to_name = get_phenotypes_lf.getNames()
     returnString, returnStringUnsafe = get_phenotypes_lf.extract_phenotypes(
@@ -1004,6 +1004,8 @@ if submit_button or st.session_state.load_state:
         clinphen, num_rows="dynamic", key="data_editor"
     )
     del clinphen
+    gc.collect()
+
     st.caption("Modify cells above 👆 or even ➕ add rows, before downloading 👇")
 
     st.download_button(
