@@ -537,7 +537,7 @@ def get_translation_dict_correction():
     return dict_correction
 
 
-@st.cache_data(max_entries=5, ttl=3600)
+@st.cache_resource(max_entries=5, ttl=3600)
 def change_name_patient_abbreviations(courrier, nom, prenom, abbreviations_dict):
     courrier_name = courrier
     dict_correction_name_abbreviations = {
@@ -596,7 +596,7 @@ def change_name_patient_abbreviations(courrier, nom, prenom, abbreviations_dict)
     return courrier_name, list_replaced
 
 
-@st.cache_data(max_entries=5, ttl=3600)
+@st.cache_resource(max_entries=5, ttl=3600)
 def translate_marian(courrier_name, _nlp, _marian_fr_en):
     list_of_sentence = []
     for sentence in _nlp.process(courrier_name).sentences:
