@@ -94,7 +94,7 @@ def load_medical_record_subsentences(medical_record):
   return subsentence_sets + load_medical_record_linewise(medical_record)
 
 #Checks the given sentence for any flags from the lists you indicate.
-negative_flags = ["no", "not", "none", "negative", "non", "never", "without", "denies", "haven't", "don't", "doesn't", "haven t", "don t", "doesn t", 'didn t', 'doesn', 'don', 'haven', 'didn']
+negative_flags = ["no", "not", "none", "negative", "non", "never", "without", "denies", "haven't", "don't", "doesn't", "haven t", "don t", "doesn t", 'didn t', 'doesn', 'don', 'haven', 'didn', 'absence', 'absent', 'absences']
 family_flags = ["<person>","<person","cousin", "parent", "mom", "mother", "dad", "father", "grandmother", "grandfather", "grandparent", "family", "brother", "sister", "sibling", "uncle", "aunt", "nephew", "niece", "son", "daughter", "grandchild", "pregnancy"]
 healthy_flags = ["normal"]
 disease_flags = ["associated", "gene", "recessive", "dominant", "variant", "cause", "literature", "individuals"]
