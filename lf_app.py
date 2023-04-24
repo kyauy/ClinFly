@@ -991,7 +991,7 @@ if submit_button or st.session_state.load_state:
         del clinphen_unsafe
         st.download_button(
             "Download unsafe extracted terms check",
-            convert_df(clinphen_unsafe_check_raw),
+            convert_df(clinphen_unsafe_check),
             nom + "_" + prenom + "_unsafe_extracted_terms_check.tsv",
             "text/csv",
             key="download-unsafe-extracted-terms",
