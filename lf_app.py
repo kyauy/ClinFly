@@ -540,9 +540,8 @@ def get_translation_dict_correction():
 @st.cache_resource(max_entries=5, ttl=3600)
 def change_name_patient_abbreviations(courrier, nom, prenom, abbreviations_dict):
     courrier_name = courrier
+
     dict_correction_name_abbreviations = {
-        prenom: "CAS",
-        nom: "INDEX",
         "M.": "M",
         "Mme.": "Mme",
         "Mlle.": "Mlle",
@@ -551,6 +550,11 @@ def change_name_patient_abbreviations(courrier, nom, prenom, abbreviations_dict)
         "Pr.": "Professeur",
         "Pr": "Professeur",
     }
+
+    for firstname in prenom.split():
+        dict_correction_name_abbreviations[firstname] = 'CAS'
+    for lastname in nom.split():
+        dict_correction_name_abbreviations[lastname] = 'INDEX'
     for key, value in abbreviations_dict.items():
         dict_correction_name_abbreviations[key] = value  # + " [" + key + "]"
 
