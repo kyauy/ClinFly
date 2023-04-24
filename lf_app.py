@@ -718,7 +718,7 @@ def add_biometrics(text, _nlp):
                 sentence = sentence.replace("DS", "SD")
                 try:
                     kg_sd = re.findall("kg(.*?)sd", sentence.lower())[0]
-                    num_kg_sd = re.findall("\(\s*([-+]?\d+(?:\.\d+)?)\s*", kg_sd)[0]
+                    num_kg_sd = re.findall("\(\s*([-+].?\d+(?:\.\d+)?)\s*", kg_sd)[0]
                     # print(kg_sd)
                     kg_sd = float(num_kg_sd)
                     print(kg_sd)
@@ -740,7 +740,7 @@ def add_biometrics(text, _nlp):
                     height_sd = re.findall("m(.*?)s", height_sd_raw)[0]
                     print(height_sd)
                     num_height_sd = re.findall(
-                        "\(\s*([-+]?\d+(?:\.\d+)?)\s*", height_sd
+                        "\(\s*([-+].?\d+(?:\.\d+)?)\s*", height_sd
                     )[0]
                     height_sd = float(num_height_sd)
                     print(height_sd)
@@ -759,7 +759,7 @@ def add_biometrics(text, _nlp):
                         .replace(" ", "")
                     )
                     pc_sd = re.findall("cm(.*?)s", pc_sd_raw)[0]
-                    num_pc_sd = re.findall("\(\s*([-+]?\d+(?:\.\d+)?)\s*", pc_sd)[0]
+                    num_pc_sd = re.findall("\(\s*([-+].?\d+(?:\.\d+)?)\s*", pc_sd)[0]
                     pc_sd = float(num_pc_sd)
                     print(pc_sd)
                     if pc_sd >= 2:
