@@ -2,7 +2,7 @@
 title: Linguo Franca
 emoji: incoming_envelope
 sdk: streamlit
-sdk_version: 1.17.0 
+sdk_version: 1.19.0 
 app_file: lf_app.py
 pinned: true
 ---
@@ -41,4 +41,9 @@ To make it run in your local computer:
 ```
 poetry shell
 streamlit run lf_app.py
+```
+
+Using requirement ?
+```
+poetry export --without-hashes --format=requirements.txt > requirements.txt
 ```
