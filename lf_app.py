@@ -559,12 +559,15 @@ def change_name_patient_abbreviations(courrier, nom, prenom, abbreviations_dict)
         dict_correction_name_abbreviations[key] = value  # + " [" + key + "]"
 
     list_replaced = []
-    splitted_courrier = courrier_name.split()
+    splitted_courrier = courrier_name.split(' ')
+    replaced_courrier = []
     for i in splitted_courrier:
-        # print(i)
+        append_word = i
         for key, value in dict_correction_name_abbreviations.items():
             i_check = i.lower().strip().replace(",", "").replace(".", "")
             if i_check == key.lower().strip():
+                print(i_check)
+                print(key)
                 if i_check == nom or i_check == prenom:
                     list_replaced.append(
                         {
@@ -592,12 +595,14 @@ def change_name_patient_abbreviations(courrier, nom, prenom, abbreviations_dict)
                 # list_replaced.append(
                 #    'Abbreviation or patient name ' + i + ' replaced by ' + value
                 # )
-                courrier_name = courrier_name.replace(
-                    i.strip().replace(",", "").replace(".", ""), value
-                )
+                append_word = value
+                #courrier_name = courrier_name.replace(
+                #    i.strip().replace(",", "").replace(".", ""), value
+                #)
+        replaced_courrier.append(append_word)
     del dict_correction_name_abbreviations
     del splitted_courrier
-    return courrier_name, list_replaced
+    return ' '.join(replaced_courrier), list_replaced
 
 
 @st.cache_resource(max_entries=5, ttl=3600)
