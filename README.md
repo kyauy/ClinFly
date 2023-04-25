@@ -1,6 +1,6 @@
 ---
 title: Linguo Franca
-emoji: :incoming_envelope:
+emoji: incoming_envelope
 sdk: streamlit
 sdk_version: 1.17.0 
 app_file: lf_app.py
