@@ -559,15 +559,16 @@ def change_name_patient_abbreviations(courrier, nom, prenom, abbreviations_dict)
         dict_correction_name_abbreviations[key] = value  # + " [" + key + "]"
 
     list_replaced = []
-    splitted_courrier = courrier_name.split(' ')
+    splitted_courrier = courrier_name.replace('\n', ' ').split(' ')
     replaced_courrier = []
     for i in splitted_courrier:
         append_word = i
+        replace_word = None
         for key, value in dict_correction_name_abbreviations.items():
             i_check = i.lower().strip().replace(",", "").replace(".", "")
             if i_check == key.lower().strip():
-                print(i_check)
-                print(key)
+                to_replace = i.strip().replace(",", "").replace(".", "")
+                replace_word = value
                 if i_check == nom or i_check == prenom:
                     list_replaced.append(
                         {
@@ -595,10 +596,11 @@ def change_name_patient_abbreviations(courrier, nom, prenom, abbreviations_dict)
                 # list_replaced.append(
                 #    'Abbreviation or patient name ' + i + ' replaced by ' + value
                 # )
-                append_word = value
                 #courrier_name = courrier_name.replace(
                 #    i.strip().replace(",", "").replace(".", ""), value
                 #)
+        if replace_word:
+            append_word = append_word.replace(to_replace, replace_word)
         replaced_courrier.append(append_word)
     del dict_correction_name_abbreviations
     del splitted_courrier
@@ -673,18 +675,19 @@ def reformat_to_letter(text, _nlp):
 
 @st.cache_data(max_entries=10, ttl=3600)
 def convert_df(df):
-    return df.to_csv(sep="\t", index=False).encode("utf-8")
+    return df.dropna(how='all').to_csv(sep="\t", index=False).encode("utf-8")
 
 
 @st.cache_data(max_entries=10, ttl=3600)
 def convert_df_no_header(df):
-    return df.to_csv(sep="\t", index=False, header=None).encode("utf-8")
+    return df.dropna(how='all').to_csv(sep="\t", index=False, header=None).encode("utf-8")
 
 
 @st.cache_data(max_entries=10, ttl=3600)
 def convert_json(df):
     dict_return = {"features": []}
-    if len(df) > 0:
+    df_check = df.dropna(how='all')
+    if len(df_check) > 0:
         df_dict_list = df[["HPO ID", "Phenotype name"]].to_dict(orient="index")
         for key, value in df_dict_list.items():
             if len(value["HPO ID"]) > 0:
