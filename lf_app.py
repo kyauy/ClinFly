@@ -465,9 +465,6 @@ def add_space_to_comma_endpoint(texte, _nlp):
     text_fr_comma_endpoint_leftpc_right_pc = add_space_to_rightp(
         text_fr_comma_endpoint_leftpc, _nlp
     )
-    # text_fr_comma_endpoint_leftpc_right_pc_stroph = add_space_to_stroph(
-    #    text_fr_comma_endpoint_leftpc_right_pc
-    # )
     del text_fr_comma
     del text_fr_comma_endpoint
     del text_fr_comma_endpoint_leftpc
@@ -479,8 +476,6 @@ def get_abbreviation_dict_correction():
     # dict_correction = {}
     with open("data/fr_abbreviations.json", "r") as outfile:
         hpo_abbreviations = json.load(outfile)
-    # for key, value in hpo_abbreviations.items():
-    #    dict_correction[" " + key + " "] = " " + value + " "
     return hpo_abbreviations  # dict_correction
 
 
@@ -593,12 +588,6 @@ def change_name_patient_abbreviations(courrier, nom, prenom, abbreviations_dict)
                             "manual_validation": True,
                         }
                     )
-                # list_replaced.append(
-                #    'Abbreviation or patient name ' + i + ' replaced by ' + value
-                # )
-                #courrier_name = courrier_name.replace(
-                #    i.strip().replace(",", "").replace(".", ""), value
-                #)
         if replace_word:
             append_word = append_word.replace(to_replace, replace_word)
         replaced_courrier.append(append_word)
@@ -634,9 +623,6 @@ def correct_marian(MarianText_space, dict_correction, nom, prenom):
                     "manual_validation": True,
                 }
             )
-            # list_replaced.append(
-            #    'Marian translation replaced "' + key + '" by "' + value
-            # )
             MarianText = MarianText.replace(key, value)
     return MarianText, list_replaced
 
@@ -645,7 +631,6 @@ def correct_marian(MarianText_space, dict_correction, nom, prenom):
 def translate_letter(
     courrier, nom, prenom, _nlp, _marian_fr_en, dict_correction, abbreviation_dict
 ):
-    # courrier_space = add_space_to_comma_endpoint(courrier, _nlp)
     courrier_name, list_replaced_abb_name = change_name_patient_abbreviations(
         courrier, nom, prenom, abbreviation_dict
     )
@@ -829,9 +814,7 @@ def main_function(inputStr):
 
 models_status = get_models()
 cities_list = get_cities_list()
-# print(cities_list)
 nlp_fr, marian_fr_en = get_nlp_marian()
-# nlp_en = get_nlp_en()
 dict_correction = get_translation_dict_correction()
 dict_abbreviation_correction = get_abbreviation_dict_correction()
 nom_propre = get_list_not_deidentify()
@@ -878,65 +861,9 @@ if submit_button or st.session_state.load_state:
         analyzer_results_keep,
         analyzer_results_saved,
     ) = anonymize_analyzer(MarianText_letter, analyzer, nom_propre, nom, prenom)
-    with st.expander("See country abbreviation and name correction"):
-        abbreviations_check = st.experimental_data_editor(
-            pd.DataFrame(list_replaced_abb_name),
-            num_rows="dynamic",
-            key="abbreviation_editor",
-            # use_container_width=True,
-        )
 
-        st.download_button(
-            "Download abbreviations check",
-            convert_df(abbreviations_check),
-            nom + "_" + prenom + "_abbreviations_check.tsv",
-            "text/csv",
-            key="download-abbreviations",
-        )
-    with st.expander("See translation tool correction"):
-        translation_check = st.experimental_data_editor(
-            pd.DataFrame(list_replaced),
-            num_rows="dynamic",
-            key="translation_editor",
-            # use_container_width=True,
-        )
-
-        st.download_button(
-            "Download translations check",
-            convert_df(translation_check),
-            nom + "_" + prenom + "_translations_check.tsv",
-            "text/csv",
-            key="download-translation-correction",
-        )
-    with st.expander("See de-identified elements"):
-        deidentification_check = st.experimental_data_editor(
-            pd.DataFrame(analyzer_results_keep + analyzer_results_saved),
-            num_rows="dynamic",
-            key="deidentification_editor",
-            # use_container_width=True,
-        )
-
-        st.download_button(
-            "Download deidentification check",
-            convert_df(deidentification_check),
-            nom + "_" + prenom + "_deidentification_check.tsv",
-            "text/csv",
-            key="download-deidentification-correction",
-        )
-        # st.write("De-identified elements")
-        # st.write(analyzer_results_keep)
-        # st.write("Keep elements")
-        # st.write(analyzer_results_saved)
 
     st.caption(MarianText_anonymize_letter_analyze)
-
-    st.download_button(
-        "Download translated letter",
-        MarianText_anonymize_letter_analyze,
-        nom + "_" + prenom + "_translated_letter.txt",
-        "text",
-        key="download-translation",
-    )
 
     MarianText_anonymize_letter_engine = anonymize_engine(
         MarianText_letter, analyzer_results_return, engine, nlp_fr
@@ -979,46 +906,30 @@ if submit_button or st.session_state.load_state:
     del MarianText_anonymized_reformat_space
     del MarianText_anonymized_reformat_biometrics
 
-    with st.expander("See additional terms extracted with biometrics analysis"):
-        st.write(additional_terms)
+    clinphen_unsafe_check_raw = clinphen_unsafe
+    #clinphen_unsafe_check_raw["name"] = nom
+    #clinphen_unsafe_check_raw["surname"] = prenom
+    clinphen_unsafe_check_raw["To keep in list"] = False
+    clinphen_unsafe_check_raw['Confidence on extraction'] = "low"
 
-    with st.expander("See unsafe extracted terms"):
-        clinphen_unsafe_check_raw = clinphen_unsafe
-        clinphen_unsafe_check_raw["name"] = nom
-        clinphen_unsafe_check_raw["surname"] = prenom
-        clinphen_unsafe_check_raw["type"] = "unsafe"
-        clinphen_unsafe_check_raw["lf_detected"] = True
-        clinphen_unsafe_check_raw["manual_validation"] = False
-        clinphen_unsafe_check_raw["error"] = "negation or relative"
-        clinphen_unsafe_check = st.experimental_data_editor(
-            clinphen_unsafe_check_raw,
-            num_rows="dynamic",
-            key="unsafe_check_editor",
-            # use_container_width=True,
-        )
-        del clinphen_unsafe
-        st.download_button(
-            "Download unsafe extracted terms check",
-            convert_df(clinphen_unsafe_check),
-            nom + "_" + prenom + "_unsafe_extracted_terms_check.tsv",
-            "text/csv",
-            key="download-unsafe-extracted-terms",
-        )
+    del clinphen_unsafe
 
-    clinphen["name"] = nom
-    clinphen["surname"] = prenom
-    clinphen["type"] = "safe"
-    clinphen["lf_detected"] = True
-    clinphen["manual_validation"] = True
-    clinphen["error"] = None
+    #clinphen["name"] = nom
+    #clinphen["surname"] = prenom
+    clinphen['Confidence on extraction'] = "high"
+    clinphen["To keep in list"] = True
 
+    cols = ['HPO ID', 'Phenotype name', "To keep in list", 'No. occurrences', 'Earliness (lower = earlier)', 'Confidence on extraction', 'Example sentence']
+    clinphen_all = pd.concat([clinphen, clinphen_unsafe_check_raw]).reset_index()
+    clinphen_all = clinphen_all[cols]
     clinphen_df = st.experimental_data_editor(
-        clinphen, num_rows="dynamic", key="data_editor"
+        clinphen_all, num_rows="dynamic", key="data_editor"
     )
     del clinphen
+    del clinphen_unsafe_check_raw
     gc.collect()
 
-    st.caption("Modify cells above 👆 or even ➕ add rows, before downloading 👇")
+    st.caption("Modify cells above 👆, click ☐ to keep low confidence symptoms in list, or even ➕ add rows, before downloading 👇")
 
     st.download_button(
         "Download summarized letter in HPO CSV format",
@@ -1029,7 +940,7 @@ if submit_button or st.session_state.load_state:
     )
 
     st.download_button(
-        "Download summarized letter in Phenotips JSON format",
+        "Download summarized letter in Phenotips JSON format (hygen compatible)",
         convert_json(clinphen_df),
         nom + "_" + prenom + "_summarized_letter.json",
         "json",

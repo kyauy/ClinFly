@@ -28,7 +28,7 @@ By facilitating the translation and anonymization of clinical reports, Linguo Fr
 
 ## Run the framework
 
-A webapp is accessible at [https://linguo.streamlit.app/](https://linguo.streamlit.app/), **please try it !**
+A webapp is accessible at [https://huggingface.co/spaces/kyauy/Linguo_Franca](https://huggingface.co/spaces/kyauy/Linguo_Franca), **please try it !**
 
 It's a streamlit application, where code is accessible in ̀`lf_app.py` file. 
 
