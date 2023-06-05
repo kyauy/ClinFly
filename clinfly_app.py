@@ -20,7 +20,7 @@ from utilities.web_utilities import display_page_title, display_sidebar
 import gc
 
 # -- Set page config
-app_title: str = "Linguo Franca"
+app_title: str = "ClinFly"
 
 display_page_title(app_title)
 display_sidebar()
@@ -483,21 +483,10 @@ def get_abbreviation_dict_correction():
 def get_translation_dict_correction():
     dict_correction_FRspec = {
         "PC": "head circumference",
-        "CP": "head circumference",
         "palatine slot": "cleft palate",
-        "TSA": "autism",
         "ASD": "autism",
-        "TDAH": "attention deficit hyperactivity disorder",
         "ADHD": "attention deficit hyperactivity disorder",
-        "IME": " medical-educational institute for his intellectual disability",
-        "EMI": " medical-educational institute for his intellectual disability",
-        "CAMSP": "medical and social center for his mild global developmental delay",
-        "SESSAD": "specific education services for his mild global developmental delay",
-        "ESAT": "establishment and service of help by work for his mild global developmental delay",
-        "RDPM": "global developmental delay",
         "IUGR": "intrauterin growth retardation",
-        "RCIU": "intrauterin growth retardation",
-        "CRIU": "intrauterin growth retardation",
         "QI": "IQ ",
         "QIT": "FSIQ ",
         "ITQ": "FSIQ ",
@@ -547,14 +536,14 @@ def change_name_patient_abbreviations(courrier, nom, prenom, abbreviations_dict)
     }
 
     for firstname in prenom.split():
-        dict_correction_name_abbreviations[firstname] = 'CAS'
+        dict_correction_name_abbreviations[firstname] = "CAS"
     for lastname in nom.split():
-        dict_correction_name_abbreviations[lastname] = 'INDEX'
+        dict_correction_name_abbreviations[lastname] = "INDEX"
     for key, value in abbreviations_dict.items():
         dict_correction_name_abbreviations[key] = value  # + " [" + key + "]"
 
     list_replaced = []
-    splitted_courrier = courrier_name.replace('\n', ' ').split(' ')
+    splitted_courrier = courrier_name.replace("\n", " ").split(" ")
     replaced_courrier = []
     for i in splitted_courrier:
         append_word = i
@@ -593,7 +582,7 @@ def change_name_patient_abbreviations(courrier, nom, prenom, abbreviations_dict)
         replaced_courrier.append(append_word)
     del dict_correction_name_abbreviations
     del splitted_courrier
-    return ' '.join(replaced_courrier), list_replaced
+    return " ".join(replaced_courrier), list_replaced
 
 
 @st.cache_resource(max_entries=5, ttl=3600)
@@ -660,30 +649,31 @@ def reformat_to_letter(text, _nlp):
 
 @st.cache_data(max_entries=10, ttl=3600)
 def convert_df(df):
-    return df.dropna(how='all').to_csv(sep="\t", index=False).encode("utf-8")
+    return df.dropna(how="all").to_csv(sep="\t", index=False).encode("utf-8")
 
 
 @st.cache_data(max_entries=10, ttl=3600)
 def convert_df_no_header(df):
-    return df.dropna(how='all').to_csv(sep="\t", index=False, header=None).encode("utf-8")
+    return (
+        df.dropna(how="all").to_csv(sep="\t", index=False, header=None).encode("utf-8")
+    )
 
 
 @st.cache_data(max_entries=10, ttl=3600)
 def convert_json(df):
     dict_return = {"features": []}
-    df_check = df.dropna(how='all')
+    df_check = df.dropna(subset=["HPO ID", "Phenotype name"])
     if len(df_check) > 0:
         df_dict_list = df[["HPO ID", "Phenotype name"]].to_dict(orient="index")
         for key, value in df_dict_list.items():
-            if len(value["HPO ID"]) > 0:
-                dict_return["features"].append(
-                    {
-                        "id": value["HPO ID"],
-                        "observed": "yes",
-                        "label": value["Phenotype name"],
-                        "type": "phenotype",
-                    }
-                )
+            dict_return["features"].append(
+                {
+                    "id": value["HPO ID"],
+                    "observed": "yes",
+                    "label": value["Phenotype name"],
+                    "type": "phenotype",
+                }
+            )
         return json.dumps(dict_return)
     else:
         return json.dumps(dict_return)
@@ -691,8 +681,9 @@ def convert_json(df):
 
 @st.cache_data(max_entries=10, ttl=3600)
 def convert_list_phenogenius(df):
-    if len(df) > 0:
-        return ",".join(df["HPO ID"].to_list())
+    df_check = df.dropna(subset=["HPO ID", "Phenotype name"])
+    if len(df_check) > 0:
+        return ",".join(df_check["HPO ID"].to_list())
     else:
         return "No HPO in letters."
 
@@ -862,7 +853,6 @@ if submit_button or st.session_state.load_state:
         analyzer_results_saved,
     ) = anonymize_analyzer(MarianText_letter, analyzer, nom_propre, nom, prenom)
 
-
     st.caption(MarianText_anonymize_letter_analyze)
 
     MarianText_anonymize_letter_engine = anonymize_engine(
@@ -875,7 +865,7 @@ if submit_button or st.session_state.load_state:
     MarianText_anonymize_letter_engine_modif.columns = [
         "Modify / curate the automatically translated and de-identified letter before downloading:"
     ]
-    MarianText_anonymize_letter_engine_df = st.experimental_data_editor(
+    MarianText_anonymize_letter_engine_df = st.data_editor(
         MarianText_anonymize_letter_engine_modif,
         num_rows="dynamic",
         key="letter_editor",
@@ -907,29 +897,37 @@ if submit_button or st.session_state.load_state:
     del MarianText_anonymized_reformat_biometrics
 
     clinphen_unsafe_check_raw = clinphen_unsafe
-    #clinphen_unsafe_check_raw["name"] = nom
-    #clinphen_unsafe_check_raw["surname"] = prenom
+    # clinphen_unsafe_check_raw["name"] = nom
+    # clinphen_unsafe_check_raw["surname"] = prenom
     clinphen_unsafe_check_raw["To keep in list"] = False
-    clinphen_unsafe_check_raw['Confidence on extraction'] = "low"
+    clinphen_unsafe_check_raw["Confidence on extraction"] = "low"
 
     del clinphen_unsafe
 
-    #clinphen["name"] = nom
-    #clinphen["surname"] = prenom
-    clinphen['Confidence on extraction'] = "high"
+    # clinphen["name"] = nom
+    # clinphen["surname"] = prenom
+    clinphen["Confidence on extraction"] = "high"
     clinphen["To keep in list"] = True
 
-    cols = ['HPO ID', 'Phenotype name', "To keep in list", 'No. occurrences', 'Earliness (lower = earlier)', 'Confidence on extraction', 'Example sentence']
+    cols = [
+        "HPO ID",
+        "Phenotype name",
+        "To keep in list",
+        "No. occurrences",
+        "Earliness (lower = earlier)",
+        "Confidence on extraction",
+        "Example sentence",
+    ]
     clinphen_all = pd.concat([clinphen, clinphen_unsafe_check_raw]).reset_index()
     clinphen_all = clinphen_all[cols]
-    clinphen_df = st.experimental_data_editor(
-        clinphen_all, num_rows="dynamic", key="data_editor"
-    )
+    clinphen_df = st.data_editor(clinphen_all, num_rows="dynamic", key="data_editor")
     del clinphen
     del clinphen_unsafe_check_raw
     gc.collect()
 
-    st.caption("Modify cells above 👆, click ☐ to keep low confidence symptoms in list, or even ➕ add rows, before downloading 👇")
+    st.caption(
+        "Modify cells above 👆, click ☐ to keep low confidence symptoms in list, or even ➕ add rows, before downloading 👇"
+    )
 
     st.download_button(
         "Download summarized letter in HPO CSV format",
