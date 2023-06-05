@@ -865,7 +865,7 @@ if submit_button or st.session_state.load_state:
     MarianText_anonymize_letter_engine_modif.columns = [
         "Modify / curate the automatically translated and de-identified letter before downloading:"
     ]
-    MarianText_anonymize_letter_engine_df = st.data_editor(
+    MarianText_anonymize_letter_engine_df = st.experimental_data_editor(
         MarianText_anonymize_letter_engine_modif,
         num_rows="dynamic",
         key="letter_editor",
@@ -920,7 +920,9 @@ if submit_button or st.session_state.load_state:
     ]
     clinphen_all = pd.concat([clinphen, clinphen_unsafe_check_raw]).reset_index()
     clinphen_all = clinphen_all[cols]
-    clinphen_df = st.data_editor(clinphen_all, num_rows="dynamic", key="data_editor")
+    clinphen_df = st.experimental_data_editor(
+        clinphen_all, num_rows="dynamic", key="data_editor"
+    )
     del clinphen
     del clinphen_unsafe_check_raw
     gc.collect()
