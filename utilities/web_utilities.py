@@ -25,7 +25,7 @@ def display_sidebar():
     Code source is available in GitHub:
     [https://github.com/kyauy/ClinFly](https://github.com/kyauy/ClinFly)
 
-    Linguo Franca is an initiative from:
+    ClinFly is an initiative from:
     """
     )
     image_univ = Image.open("img/logosfacmontpellier.png")
