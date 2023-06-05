@@ -2,7 +2,7 @@
 title: ClinFly
 emoji: small_airplane
 sdk: streamlit
-sdk_version: 1.19.0 
+sdk_version: 1.21.0 
 app_file: clinfly_app.py
 pinned: true
 ---
