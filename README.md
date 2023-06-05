@@ -1,6 +1,6 @@
 ---
-title: Linguo Franca
-emoji: incoming_envelope
+title: ClinFly
+emoji: small_airplane
 sdk: streamlit
 sdk_version: 1.19.0 
 app_file: clinfly_app.py
