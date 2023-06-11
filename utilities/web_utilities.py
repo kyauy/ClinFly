@@ -18,9 +18,12 @@ def display_sidebar():
 
     st.sidebar.markdown(
         """
-    Currently only working from :fr: to :gb:.  
+    
+    Currently compatible with :fr:, :de:, :es: and optimized for :fr: to :gb:.  
+    If you want to collaborate to improve another language, please contact us.  
 
     If any questions or suggestions, please contact: [kevin.yauy@chu-montpellier.fr](kevin.yauy@chu-montpellier.fr) and [lucas.gauthier@chu-lyon.fr](lucas.gauthier@chu-lyon.fr) 
+    
 
     Code source is available in GitHub:
     [https://github.com/kyauy/ClinFly](https://github.com/kyauy/ClinFly)

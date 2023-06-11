@@ -26,121 +26,6 @@ display_page_title(app_title)
 display_sidebar()
 
 
-@st.cache_resource(max_entries=5, ttl=3600)
-def get_models():
-    stanza.download("fr")
-    try:
-        nltk.data.find("omw-1.4")
-    except LookupError:
-        nltk.download("omw-1.4")
-    try:
-        nltk.data.find("wordnet")
-    except LookupError:
-        nltk.download("wordnet")
-
-    spacy_model_name = "en_core_web_lg"
-    if not spacy.util.is_package(spacy_model_name):
-        spacy.cli.download(spacy_model_name)
-    else:
-        print(spacy_model_name + " already downloaded")
-    return "Done"
-
-
-@st.cache_resource(max_entries=5, ttl=3600)
-def get_cities_list():
-    cities = pd.read_csv("data/proper_noun_location_sort.csv")
-    cities.columns = ["ville"]
-    whole_cities_patterns = []
-    list_cities = cities["ville"].to_list()
-    for element in list_cities:
-        whole_cities_patterns.append(element)
-        whole_cities_patterns.append(element.lower().capitalize())
-        whole_cities_patterns.append(element.upper())
-        whole_cities_patterns.append(unidecode(element))
-        whole_cities_patterns.append(unidecode(element).lower().capitalize())
-        whole_cities_patterns.append(unidecode(element).upper())
-    del cities
-    del list_cities
-    return whole_cities_patterns
-
-
-@st.cache_resource(max_entries=5, ttl=3600)
-def get_list_not_deidentify():
-    nom_propre_data = pd.read_csv(
-        "data/exception_list_anonymization.tsv", sep="\t", header=None
-    ).astype(str)
-
-    drug_data = pd.read_csv("data/drug_name.tsv", sep="\t", header=None).astype(str)
-
-    gene_data = pd.read_csv("data/gene_name.tsv", sep="\t", header=None).astype(str)
-
-    nom_propre_list = (
-        nom_propre_data[0].to_list()
-        + drug_data[0].to_list()
-        + gene_data[0].to_list()
-        + [
-            "PN",
-            "TN",
-            "SD",
-            "PCN",
-            "cher",
-            "chere",
-            "CAS",
-            "INDEX",
-            "APGAR",
-            "M",
-            "Ms",
-            "Mr",
-            "Behçet",
-            "hypoacousia",
-        ]
-    )
-    nom_propre = [x.lower() for x in nom_propre_list]
-
-    del nom_propre_data
-    del drug_data
-    del gene_data
-    del nom_propre_list
-    return nom_propre
-
-
-@st.cache_resource(max_entries=5, ttl=3600)
-def config_deidentify():
-    configuration = {
-        "nlp_engine_name": "spacy",
-        "models": [{"lang_code": "en", "model_name": "en_core_web_lg"}],
-    }
-
-    # Create NLP engine based on configuration
-    provider = NlpEngineProvider(nlp_configuration=configuration)
-    nlp_engine = provider.create_engine()
-    frcity_recognizer = PatternRecognizer(
-        supported_entity="FRENCH_CITY", deny_list=cities_list
-    )
-
-    analyzer = AnalyzerEngine(nlp_engine=nlp_engine, supported_languages=["en"])
-    analyzer.registry.add_recognizer(frcity_recognizer)
-    engine = AnonymizerEngine()
-    del configuration
-    del provider
-    del nlp_engine
-    del frcity_recognizer
-    return analyzer, engine
-
-
-@st.cache_resource(max_entries=5, ttl=3600)
-def get_nlp_marian():
-    nlp_fr = stanza.Pipeline("fr", processors="tokenize")
-    marian_fr_en = Translator("fr", "en")
-    return nlp_fr, marian_fr_en
-
-
-# @st.cache_resource()
-# def get_nlp_en():
-#    nlp_en = stanza.Pipeline("en", processors="tokenize")
-#    return nlp_en
-
-
 @dataclass(frozen=True)
 class SentenceBoundary:
     text: str
@@ -256,6 +141,128 @@ class Translator:
         return [
             str(text.map_sentence_boundaries(translations)) for text in text_sentences
         ]
+
+
+@st.cache_resource(max_entries=5, ttl=3600)
+def get_models():
+    stanza.download("fr")
+    stanza.download("de")
+    # stanza.download("it")
+    stanza.download("es")
+    Translator("fr", "en")
+    Translator("de", "en")
+    # Translator("it", "en")
+    Translator("es", "en")
+    try:
+        nltk.data.find("omw-1.4")
+    except LookupError:
+        nltk.download("omw-1.4")
+    try:
+        nltk.data.find("wordnet")
+    except LookupError:
+        nltk.download("wordnet")
+
+    spacy_model_name = "en_core_web_lg"
+    if not spacy.util.is_package(spacy_model_name):
+        spacy.cli.download(spacy_model_name)
+    else:
+        print(spacy_model_name + " already downloaded")
+    return "Done"
+
+
+@st.cache_resource(max_entries=5, ttl=3600)
+def get_cities_list():
+    cities = pd.read_csv("data/proper_noun_location_sort.csv")
+    cities.columns = ["ville"]
+    whole_cities_patterns = []
+    list_cities = cities["ville"].to_list()
+    for element in list_cities:
+        whole_cities_patterns.append(element)
+        whole_cities_patterns.append(element.lower().capitalize())
+        whole_cities_patterns.append(element.upper())
+        whole_cities_patterns.append(unidecode(element))
+        whole_cities_patterns.append(unidecode(element).lower().capitalize())
+        whole_cities_patterns.append(unidecode(element).upper())
+    del cities
+    del list_cities
+    return whole_cities_patterns
+
+
+@st.cache_resource(max_entries=5, ttl=3600)
+def get_list_not_deidentify():
+    nom_propre_data = pd.read_csv(
+        "data/exception_list_anonymization.tsv", sep="\t", header=None
+    ).astype(str)
+
+    drug_data = pd.read_csv("data/drug_name.tsv", sep="\t", header=None).astype(str)
+
+    gene_data = pd.read_csv("data/gene_name.tsv", sep="\t", header=None).astype(str)
+
+    nom_propre_list = (
+        nom_propre_data[0].to_list()
+        + drug_data[0].to_list()
+        + gene_data[0].to_list()
+        + [
+            "PN",
+            "TN",
+            "SD",
+            "PCN",
+            "cher",
+            "chere",
+            "CAS",
+            "INDEX",
+            "APGAR",
+            "M",
+            "Ms",
+            "Mr",
+            "Behçet",
+            "hypoacousia",
+        ]
+    )
+    nom_propre = [x.lower() for x in nom_propre_list]
+
+    del nom_propre_data
+    del drug_data
+    del gene_data
+    del nom_propre_list
+    return nom_propre
+
+
+@st.cache_resource(max_entries=5, ttl=3600)
+def config_deidentify():
+    configuration = {
+        "nlp_engine_name": "spacy",
+        "models": [{"lang_code": "en", "model_name": "en_core_web_lg"}],
+    }
+
+    # Create NLP engine based on configuration
+    provider = NlpEngineProvider(nlp_configuration=configuration)
+    nlp_engine = provider.create_engine()
+    frcity_recognizer = PatternRecognizer(
+        supported_entity="FRENCH_CITY", deny_list=cities_list
+    )
+
+    analyzer = AnalyzerEngine(nlp_engine=nlp_engine, supported_languages=["en"])
+    analyzer.registry.add_recognizer(frcity_recognizer)
+    engine = AnonymizerEngine()
+    del configuration
+    del provider
+    del nlp_engine
+    del frcity_recognizer
+    return analyzer, engine
+
+
+@st.cache_resource(max_entries=5, ttl=3600)
+def get_nlp_marian(source_lang):
+    nlp_fr = stanza.Pipeline(source_lang, processors="tokenize")
+    marian_fr_en = Translator(source_lang, "en")
+    return nlp_fr, marian_fr_en
+
+
+# @st.cache_resource()
+# def get_nlp_en():
+#    nlp_en = stanza.Pipeline("en", processors="tokenize")
+#    return nlp_en
 
 
 @st.cache_data(max_entries=5, ttl=3600)
@@ -805,12 +812,17 @@ def main_function(inputStr):
 
 models_status = get_models()
 cities_list = get_cities_list()
-nlp_fr, marian_fr_en = get_nlp_marian()
 dict_correction = get_translation_dict_correction()
 dict_abbreviation_correction = get_abbreviation_dict_correction()
 nom_propre = get_list_not_deidentify()
 analyzer, engine = config_deidentify()
 
+
+source_lang = st.selectbox(
+    "Which is the language of the letter :fr: :es: :de: ?", ("fr", "es", "de")  # "it"
+)
+
+nlp_fr, marian_fr_en = get_nlp_marian(source_lang)
 
 if "load_state" not in st.session_state:
     st.session_state.load_state = False
@@ -818,11 +830,11 @@ if "load_state" not in st.session_state:
 with st.form("my_form"):
     c1, c2 = st.columns(2)
     with c1:
-        nom = st.text_input("Nom du patient ", "Doe", key="name")
+        nom = st.text_input("Last name", "Doe", key="name")
     with c2:
-        prenom = st.text_input("Prénom du patient", "John", key="surname")
+        prenom = st.text_input("First name", "John", key="surname")
     courrier = st.text_area(
-        "Courrier à coller",
+        "Paste medical letter",
         "Chers collegues, j'ai recu en consultation M. John Doe né le 14/07/1789 pour une fièvre récurrente et une maladie de Crohn. Il a pour antécédent des epistaxis recurrents. Parmi les antécédants familiaux, sa maman a présenté un cancer des ovaires. Il mesure 1.90 m (+2.5  DS),  pèse 93 kg (+3.6 DS) et son PC est à 57 cm (+0DS) ...",
         height=200,
         key="letter",
