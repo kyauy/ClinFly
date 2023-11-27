@@ -935,6 +935,7 @@ if submit_button or st.session_state.load_state:
     clinphen_df = st.experimental_data_editor(
         clinphen_all, num_rows="dynamic", key="data_editor"
     )
+    clinphen_df_without_low_confidence = clinphen_df[clinphen_df["To keep in list"]== True]
     del clinphen
     del clinphen_unsafe_check_raw
     gc.collect()
@@ -953,7 +954,7 @@ if submit_button or st.session_state.load_state:
 
     st.download_button(
         "Download summarized letter in Phenotips JSON format (hygen compatible)",
-        convert_json(clinphen_df),
+        convert_json(clinphen_df_without_low_confidence),
         nom + "_" + prenom + "_summarized_letter.json",
         "json",
         key="download-summarization-json",
@@ -961,7 +962,7 @@ if submit_button or st.session_state.load_state:
 
     st.download_button(
         "Download summarized letter in PhenoGenius list of HPO format",
-        convert_list_phenogenius(clinphen_df),
+        convert_list_phenogenius(clinphen_df_without_low_confidence),
         nom + "_" + prenom + "_summarized_letter.txt",
         "text",
         key="download-summarization-phenogenius",
