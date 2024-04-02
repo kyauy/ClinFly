@@ -1,6 +1,7 @@
 import streamlit as st
-
 from PIL import Image
+import inspect
+import os
 
 
 def display_page_title(title: str):
@@ -47,3 +48,33 @@ def display_sidebar():
 #                    file_name="Mentions_legales_lf.pdf",
 #                    mime='application/octet-stream')
 # st.sidebar.markdown("[Mentions légales](data/Mentions_legales_lf.pdf)")
+
+
+def st_cache_data_if(condition, *args, **kwargs):
+    def decorator(func):
+        if condition:
+            return st.cache_data(*args, **kwargs)(func)
+        else:
+            return func
+    return decorator
+
+
+def st_cache_resource_if(condition, *args, **kwargs):
+    def decorator(func):
+        if condition:
+            return st.cache_resource(*args, **kwargs)(func)
+        else:
+            return func
+    return decorator
+
+
+supported_cache = False
+
+def stack_checker():
+    caller_frame = inspect.stack()
+    for e in caller_frame:
+        if os.path.basename(e.filename) == "clinfly_app_st.py":
+            global supported_cache
+            supported_cache = True
+
+stack_checker()
