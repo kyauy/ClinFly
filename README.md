@@ -1,9 +1,9 @@
 ---
 title: ClinFly
 emoji: small_airplane
-sdk: streamlit
 sdk_version: 1.21.0 
-app_file: clinfly_app.py
+streamlit_file: clinfly_app_st.py
+CLI_file: clinfly_app_cli.py
 pinned: true
 ---
 
@@ -26,24 +26,44 @@ By facilitating the translation and anonymization of clinical reports, ClinFly h
 
 ![](img/pipeline.png)
 
-## Run the framework
-
-A webapp is accessible at [https://huggingface.co/spaces/kyauy/ClinFly](https://huggingface.co/spaces/kyauy/ClinFly), **please try it !**
-
-It's a streamlit application, where code is accessible in ̀`clinfly_app.py` file. 
+## Poetry Installation
 
 To install on your local machine, you need `poetry` package manager and launch in the folder:
 ```
 poetry install
 ```
 
-To make it run in your local computer:
-```
-poetry shell
-streamlit run clinfly_app.py
-```
-
 Using requirement ?
 ```
 poetry export --without-hashes --format=requirements.txt > requirements.txt
+```
+
+## Run the code
+
+### Graphical User Interface - Single report usage with interactive analysis
+
+A webapp is accessible at https://huggingface.co/spaces/kyauy/ClinFly, please try it !
+
+It's a streamlit application, where code is accessible in ̀`clinfly_app_st.py` file. The functions are accessible in the `utilities` folder.
+
+To run the streamlit application on your local computer :
+```
+poetry shell
+streamlit run clinfly_app_st.py
+```
+
+### Command Line Interface - Multiple report usage with offline options
+
+The code is accessible in ̀`clinfly_app_cli.py` file. The functions are accessible in the `utilities` folder.
+
+The output will be placed in the `results` folder according to the file extension. 
+
+A resume of the deidentify report will be generated and placed in the `results/Reports` folder.
+
+Three HPO extraction output will be generated, TSV, TXT and Json.
+
+To run the CLI application on your local computer :
+```
+poetry shell
+<python running version> clinfly_app_cli.py --file <input csv file with the registration> --language <language of the file> --output_dir <The output directory of the model (OPTIONAL)>
 ```
