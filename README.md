@@ -56,6 +56,11 @@ streamlit run clinfly_app_st.py
 
 The code is accessible in ̀`clinfly_app_cli.py` file. The functions are accessible in the `utilities` folder.
 
+The entry file must be a TSV .txt with the informations structured like this :
+```
+Doe  John  Report
+```
+
 The output will be placed in the `results` folder according to the file extension. 
 
 A resume of the deidentify report will be generated and placed in the `results/Reports` folder.
@@ -65,5 +70,5 @@ Three HPO extraction output will be generated, TSV, TXT and Json.
 To run the CLI application on your local computer :
 ```
 poetry shell
-<python running version> clinfly_app_cli.py --file <input csv file with the registration> --language <language of the file> --output_dir <The output directory of the model (OPTIONAL)>
+<python running version> clinfly_app_cli.py --file <input csv file with the reports> --language <language of the file> --output_dir <The output directory of the model (OPTIONAL)>
 ```

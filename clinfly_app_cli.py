@@ -139,14 +139,12 @@ if __name__ == "__main__":
     Last_name :str
     First_name : str
     Report : str
-    with open(file_name, newline='', encoding='utf-8-sig') as fichier_csv:
-        lecteur_csv = csv.reader(fichier_csv, delimiter=";")
-        for ligne in lecteur_csv:
-            Last_name, First_name, Report = ligne
+    with open(file_name, 'r') as fichier:
+        for ligne in fichier:
+            elements = ligne.strip().split('\t')
+            Last_name, First_name, Report = elements
             print("Last_name:", Last_name)
             print("First_name:", First_name)
             print("Report:", Report)
             main()
-            print()  
-
-        
+            print()
