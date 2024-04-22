@@ -70,5 +70,5 @@ Three HPO extraction output will be generated, TSV, TXT and Json.
 To run the CLI application on your local computer :
 ```
 poetry shell
-<python running version> clinfly_app_cli.py --file <input txt file with the reports> --language <language of the file> --output_dir <The output directory of the model (OPTIONAL)>
+<python running version> clinfly_app_cli.py --file <input txt file with the reports> --language <language of the file> --model_dir <The output directory of the model (OPTIONAL)> --result_dir <The output directory of the generated result (OPTIONAL)>
 ```

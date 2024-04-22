@@ -46,7 +46,7 @@ def main():
 
 
     MarianText_anonymize_report_engine_df = MarianText_anonymize_report_engine_modif
-    with open("results/Reports/" + Last_name + "_" + First_name + "_translated_and_deindentified_report.txt", 'w') as file:
+    with open("Results/Reports/" + Last_name + "_" + First_name + "_translated_and_deindentified_report.txt", 'w') as file:
             file.write(convert_df_no_header(MarianText_anonymize_report_engine_df).decode("utf-8"))
     print("Text file created successfully : " + Last_name + "_" + First_name + "_translated_and_deindentified_report.txt")
 
@@ -94,17 +94,17 @@ def main():
     gc.collect()
 
 
-    with open("results/TSV/" + Last_name + "_" + First_name + "_summarized_report.tsv", 'w') as file:
+    with open("Results/TSV/" + Last_name + "_" + First_name + "_summarized_report.tsv", 'w') as file:
             file.write(convert_df(clinphen_df).decode("utf-8"))
     print("Tsv file created successfully : " + Last_name + "_" + First_name + "_summarized_report.tsv")
 
 
-    with open("results/JSON/" + Last_name + "_" + First_name + "_summarized_report.json", 'w') as file:
+    with open("Results/JSON/" + Last_name + "_" + First_name + "_summarized_report.json", 'w') as file:
             file.write(convert_json(clinphen_df_without_low_confidence))
     print("JSON file created successfully : " + Last_name + "_" + First_name + "_summarized_report.json")
 
 
-    with open("results/TXT/" + Last_name + "_" + First_name + "_summarized_report.txt", 'w') as file:
+    with open("Results/TXT/" + Last_name + "_" + First_name + "_summarized_report.txt", 'w') as file:
             file.write(convert_list_phenogenius(clinphen_df_without_low_confidence))
     print("Text file created successfully : " + Last_name + "_" + First_name + "_summarized_report.txt")
 
@@ -115,19 +115,37 @@ if __name__ == "__main__":
     print("Welcome to the Clinfly app")
 
 
-    parser = argparse.ArgumentParser(description="How to use Clinfly.")
+    parser = argparse.ArgumentParser(description="Description of clinfly arguments")
     parser.add_argument("--file", type=str,help="the input file which contains the visits informations", required=True)
     parser.add_argument("--language", choices=['fr', 'es', 'de'],type=str, help="The language of the input : fr, es , de",required=True)
-    parser.add_argument("--output_dir",default=os.path.expanduser("~"),type=str, help="The directory where the models will be downloaded.")
+    parser.add_argument("--model_dir",default=os.path.expanduser("~"),type=str, help="The directory where the models will be downloaded.")
+    parser.add_argument("--result_dir",default="Results",type=str, help="The directory where the results will be placed.")
+    
 
 
     args = parser.parse_args()
 
-    if not os.path.exists(args.output_dir):
-        os.makedirs(args.output_dir)
+
+    if not os.path.exists(args.model_dir):
+        os.makedirs(args.model_dir)
+
+    if not os.path.exists(args.result_dir):
+        os.makedirs(args.result_dir)
+        
+    if not os.path.exists(os.path.join(args.result_dir,"Reports")):
+        os.makedirs(os.path.join(args.result_dir,"Reports"))
+
+    if not os.path.exists(os.path.join(args.result_dir,"TSV")):
+        os.makedirs(os.path.join(args.result_dir,"TSV"))
+
+    if not os.path.exists(os.path.join(args.result_dir,"JSON")):
+        os.makedirs(os.path.join(args.result_dir,"JSON"))
+
+    if not os.path.exists(os.path.join(args.result_dir,"TXT")):
+        os.makedirs(os.path.join(args.result_dir,"TXT"))
 
     print("Language chosen :", args.language)
-    models_status = get_models(args.language,args.output_dir)
+    models_status = get_models(args.language,args.model_dir)
     dict_correction = get_translation_dict_correction()
     dict_abbreviation_correction = get_abbreviation_dict_correction()
     proper_noun = get_list_not_deidentify()
