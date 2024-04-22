@@ -46,7 +46,7 @@ def main():
 
 
     MarianText_anonymize_report_engine_df = MarianText_anonymize_report_engine_modif
-    with open("Results/Reports/" + Last_name + "_" + First_name + "_translated_and_deindentified_report.txt", 'w') as file:
+    with open(os.path.join(args.result_dir,"Reports","") + Last_name + "_" + First_name + "_translated_and_deindentified_report.txt", 'w') as file:
             file.write(convert_df_no_header(MarianText_anonymize_report_engine_df).decode("utf-8"))
     print("Text file created successfully : " + Last_name + "_" + First_name + "_translated_and_deindentified_report.txt")
 
@@ -94,17 +94,17 @@ def main():
     gc.collect()
 
 
-    with open("Results/TSV/" + Last_name + "_" + First_name + "_summarized_report.tsv", 'w') as file:
+    with open(os.path.join(args.result_dir,"TSV","") + Last_name + "_" + First_name + "_summarized_report.tsv", 'w') as file:
             file.write(convert_df(clinphen_df).decode("utf-8"))
     print("Tsv file created successfully : " + Last_name + "_" + First_name + "_summarized_report.tsv")
 
 
-    with open("Results/JSON/" + Last_name + "_" + First_name + "_summarized_report.json", 'w') as file:
+    with open(os.path.join(args.result_dir,"JSON","") + Last_name + "_" + First_name + "_summarized_report.json", 'w') as file:
             file.write(convert_json(clinphen_df_without_low_confidence))
     print("JSON file created successfully : " + Last_name + "_" + First_name + "_summarized_report.json")
 
 
-    with open("Results/TXT/" + Last_name + "_" + First_name + "_summarized_report.txt", 'w') as file:
+    with open(os.path.join(args.result_dir,"TXT","") + Last_name + "_" + First_name + "_summarized_report.txt", 'w') as file:
             file.write(convert_list_phenogenius(clinphen_df_without_low_confidence))
     print("Text file created successfully : " + Last_name + "_" + First_name + "_summarized_report.txt")
 
