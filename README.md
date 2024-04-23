@@ -1,6 +1,6 @@
 ---
 title: ClinFly
-emoji: small_airplane
+emoji: airplane
 sdk_version: 1.25.0 
 sdk: streamlit
 app_file: clinfly_app_st.py
