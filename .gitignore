@@ -4,3 +4,5 @@ __pycache__/
 .vscode/
 .venv/
 poetry.lock
+.DS*
+output/

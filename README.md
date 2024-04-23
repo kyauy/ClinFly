@@ -1,9 +1,9 @@
 ---
 title: ClinFly
 emoji: small_airplane
-sdk_version: 1.21.0 
-streamlit_file: clinfly_app_st.py
-CLI_file: clinfly_app_cli.py
+sdk_version: 1.25.0 
+sdk: streamlit
+app_file: clinfly_app_st.py
 pinned: true
 ---
 
@@ -16,56 +16,55 @@ Contact : [kevin.yauy@chu-montpellier.fr](mailto:kevin.yauy@chu-montpellier.fr)
 
 ## Introduction
 
-Precision medicine (PM) for rare diseases requires both precision phenotyping and data sharing. However, the majority of digital phenotyping tools only deal with the English language. 
+ClinFly is an automated framework designed to facilitate precision medicine (PM) for rare diseases. It addresses the challenge of precision phenotyping and data sharing across different languages.
 
-Using French as a proof of concept, we have developed ClinFly, an automated framework to anonymize, translate and summarize clinical reports using Human Phenotype Ontology (HPO) terms compliant with medical data privacy standards. The output consists of a de-identified translated clinical report and a summary report in HPO format. 
+ClinFly can anonymize, translate, and summarize clinical reports using Human Phenotype Ontology (HPO) terms, ensuring compliance with medical data privacy standards. The output includes a de-identified translated clinical report and a summary report in HPO format.
 
-By facilitating the translation and anonymization of clinical reports, ClinFly has the potential to facilitate inter-hospital data sharing, accelerate medical discoveries and open up the possibility of an international patient file without limitations due to non-English speakers.
+By streamlining the translation and anonymization of clinical reports, ClinFly aims to enhance inter-hospital data sharing, expedite medical discoveries, and pave the way for an international patient file accessible to non-English speakers.
 
 ## Pipeline 
 
 ![](img/pipeline.png)
 
-## Poetry Installation
+## Installation
 
-To install on your local machine, you need `poetry` package manager and launch in the folder:
+To install ClinFly on your local machine, you need the `poetry` package manager. Navigate to the project folder and run:
+
 ```
 poetry install
 ```
 
-Using requirement ?
+If you need to generate a `requirements.txt` file, use the following command:
 ```
 poetry export --without-hashes --format=requirements.txt > requirements.txt
 ```
 
-## Run the code
+## Usage
 
-### Graphical User Interface - Single report usage with interactive analysis
+### Graphical User Interface 
 
-A webapp is accessible at https://huggingface.co/spaces/kyauy/ClinFly, please try it !
+For single report usage with interactive analysis, ClinFly provides a web application accessible at https://huggingface.co/spaces/kyauy/ClinFly.
 
-It's a streamlit application, where code is accessible in ̀`clinfly_app_st.py` file. The functions are accessible in the `utilities` folder.
-
-To run the streamlit application on your local computer :
+To run the Streamlit application on your local computer, activate the poetry shell and run the `clinfly_app_st.py` file:
 ```
 poetry shell
 streamlit run clinfly_app_st.py
 ```
 
-### Command Line Interface - Multiple report usage with offline options
+### Command Line Interface
 
-The code is accessible in ̀`clinfly_app_cli.py` file. The functions are accessible in the `utilities` folder.
+For processing multiple reports with offline options, use the command line interface provided by `clinfly_app_cli.py`.
 
-The entry file must be a TSV .txt with the informations structured like this :
+The input should be a TSV .txt file structured as follows (see `data/test.tsv` for an example):
 ```
-Doe  John  Report
+Report_id_1   Doe  John  Report text 
+...
+Report_id_X   Doe  John  Report text
 ```
 
-The output will be placed in the `results` folder according to the file extension. 
-
-A resume of the deidentify report will be generated and placed in the `results/Reports` folder.
-
-Three HPO extraction output will be generated, TSV, TXT and Json.
+Outputs will be placed in the `results` folder according to the file extension, using first three columns in filename. 
+- The deidentify report will be generated and placed in the `results/Reports` folder.
+- Three HPO extraction outputs will be generated in `TSV`, `TXT` and `JSON` folders.
 
 To run the CLI application on your local computer :
 ```
