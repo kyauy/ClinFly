@@ -51,6 +51,9 @@ def convert_pdf_to_text(file):
         images = convert_from_bytes(file)
     else:
         images = convert_from_path(file)
-    for i,img in enumerate(images):
-      extraction = (pytesseract.image_to_string(img)[:-1])
-    return extraction
+    extraction = []
+    for img in images:
+        text = pytesseract.image_to_string(img)
+        extraction.append(text)
+    
+    return " ".join(extraction)
