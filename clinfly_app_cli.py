@@ -18,6 +18,7 @@ from utilities.convert import (
     convert_df,
     convert_json,
     convert_list_phenogenius,
+    convert_pdf_to_text,
 )
 from utilities.extract_hpo import add_biometrics, extract_hpo
 from utilities.get_model import get_models, get_nlp_marian
@@ -258,13 +259,25 @@ if __name__ == "__main__":
     Last_name: str
     First_name: str
     Report: str
-    with open(file_name, "r") as fichier:
-        for ligne in fichier:
-            elements = ligne.strip().split("\t")
-            Report_id, Last_name, First_name, Report = elements
+
+    if os.path.isfile(args.file):
+        with open(file_name, 'r') as fichier:
+          for ligne in fichier:
+            elements = ligne.strip().split('\t')
+            Report_id, Last_name, First_name, text_or_link = elements
             print("Report_id:", Report_id)
             print("Last_name:", Last_name)
             print("First_name:", First_name)
-            print("Report:", Report)
+            if os.path.exists(text_or_link):
+                if text_or_link.lower().endswith('.pdf'):
+                    print(f"Processing PDF file: {text_or_link}")
+                    Report = convert_pdf_to_text(text_or_link)
+                else:
+                    print(f"Unsupported file type. Please provide a link to a PDF files.")
+            else:
+                Report = text_or_link
+                print("Report:", Report)
             main()
             print()
+    else:
+        print("Input is not a file. Please provide a valid input.")

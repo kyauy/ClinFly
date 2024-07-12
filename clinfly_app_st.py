@@ -2,7 +2,7 @@ import pandas as pd
 from utilities.web_utilities import display_page_title, display_sidebar, stack_checker
 from utilities.anonymize import get_cities_list,get_abbreviation_dict_correction, reformat_to_report, anonymize_analyzer, anonymize_engine, add_space_to_comma_endpoint,get_list_not_deidentify, config_deidentify
 from utilities.translate import get_translation_dict_correction, translate_report
-from utilities.convert import convert_df_no_header, convert_df, convert_json, convert_list_phenogenius
+from utilities.convert import convert_df_no_header, convert_df, convert_json, convert_list_phenogenius, convert_pdf_to_text
 from utilities.extract_hpo import add_biometrics, extract_hpo
 from utilities.get_model import get_models, get_nlp_marian
 import streamlit as st
@@ -60,14 +60,19 @@ if st.session_state.load_models is True:
         with c2:
             prenom = st.text_input("First name", "John", key="surname")
         courrier = st.text_area(
-            "Paste medical letter",
+            "You can paste the medical letter",
             "Chers collegues, j'ai recu en consultation M. John Doe né le 14/07/1789 pour une fièvre récurrente et une maladie de Crohn. Il a pour antécédent des epistaxis recurrents. Parmi les antécédants familiaux, sa maman a présenté un cancer des ovaires. Il mesure 1.90 m (+2.5  DS),  pèse 93 kg (+3.6 DS) et son PC est à 57 cm (+0DS) ...",
             height=200,
             key="letter",
         )
+        uploaded_file = st.file_uploader("Or upload it (only pdf files are supported)")
 
         submit_button = st.form_submit_button(label="Submit report")
 
+    if uploaded_file is not None:
+        # To read file as bytes:
+        bytes_data = uploaded_file.getvalue()
+        courrier = convert_pdf_to_text(bytes_data)
 
     if submit_button or st.session_state.load_report:
         st.session_state.load_report = True
