@@ -65,6 +65,7 @@ You can also put a symlink to a pdf file (see `data/test_pdf.tsv` for an example
 ```
 Report_id_X   Doe  John  Example.pdf
 ```
+You'll need poppler installed in your os to use OCR on pdf file (https://pdf2image.readthedocs.io/en/latest/installation.html)
 
 Outputs will be placed in the `results` folder according to the file extension, using first three columns in filename. 
 - The deidentify report will be generated and placed in the `results/Reports` folder.
