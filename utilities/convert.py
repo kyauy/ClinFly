@@ -1,6 +1,8 @@
 import json
 import streamlit as st
 from .web_utilities import st_cache_data_if, supported_cache
+from pdf2image import convert_from_bytes, convert_from_path
+import pytesseract
 
 
 @st_cache_data_if(supported_cache, max_entries=10, ttl=3600)
@@ -43,3 +45,12 @@ def convert_list_phenogenius(df):
     else:
         return "No HPO in letters."
 
+@st_cache_data_if(supported_cache, max_entries=10, ttl=3600)
+def convert_pdf_to_text(file):
+    if isinstance(file, bytes):
+        images = convert_from_bytes(file)
+    else:
+        images = convert_from_path(file)
+    for i,img in enumerate(images):
+      extraction = (pytesseract.image_to_string(img)[:-1])
+    return extraction
