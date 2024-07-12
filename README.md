@@ -55,12 +55,17 @@ streamlit run clinfly_app_st.py
 
 For processing multiple reports with offline options, use the command line interface provided by `clinfly_app_cli.py`.
 
-The input should be a TSV .txt file structured as follows (see `data/test.tsv` for an example):
+The input should be a TSV .tsv file structured as follows (see `data/test.tsv` for an example):
 ```
 Report_id_1   Doe  John  Report text 
 ...
 Report_id_X   Doe  John  Report text
 ```
+You can also put a symlink to a pdf file (see `data/test_pdf.tsv` for an example)
+```
+Report_id_X   Doe  John  Example.pdf
+```
+You'll need poppler installed in your os to use OCR on pdf file (https://pdf2image.readthedocs.io/en/latest/installation.html)
 
 Outputs will be placed in the `results` folder according to the file extension, using first three columns in filename. 
 - The deidentify report will be generated and placed in the `results/Reports` folder.
