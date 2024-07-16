@@ -34,6 +34,8 @@ To install ClinFly on your local machine, you need the `poetry` package manager.
 poetry install
 ```
 
+You'll need poppler installed in your os to use OCR on pdf file (https://pdf2image.readthedocs.io/en/latest/installation.html)
+
 If you need to generate a `requirements.txt` file, use the following command:
 ```
 poetry export --without-hashes --format=requirements.txt > requirements.txt
@@ -65,7 +67,6 @@ You can also put a symlink to a pdf file (see `data/test_pdf.tsv` for an example
 ```
 Report_id_X   Doe  John  Example.pdf
 ```
-You'll need poppler installed in your os to use OCR on pdf file (https://pdf2image.readthedocs.io/en/latest/installation.html)
 
 Outputs will be placed in the `results` folder according to the file extension, using first three columns in filename. 
 - The deidentify report will be generated and placed in the `results/Reports` folder.
@@ -76,3 +77,11 @@ To run the CLI application on your local computer :
 poetry shell
 <python running version> clinfly_app_cli.py --file <input txt file with the reports> --language <language of the file> --model_dir <The output directory of the model (OPTIONAL)> --result_dir <The output directory of the generated result (OPTIONAL)>
 ```
+
+
+## Acknoledgments and reference
+
+ClinFly is a tool developed by University Hospital of Montpellier and Hospices Civils de Lyon. Thanks to the developers, especially Enody Gernet for his contribution. 
+
+If you use ClinFly, please cite:
+> Gauthier et al., Assessing feasibility and risk to translate, de-identify and summarize medical letters using deep learning. medrXiv (2023). [https://doi.org/10.1101/2023.07.27.23293234](https://doi.org/10.1101/2023.07.27.23293234)
