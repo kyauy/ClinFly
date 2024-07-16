@@ -34,7 +34,7 @@ To install ClinFly on your local machine, you need the `poetry` package manager.
 poetry install
 ```
 
-You'll need poppler installed in your os to use OCR on pdf file (https://pdf2image.readthedocs.io/en/latest/installation.html)
+You'll need [`poppler`](https://pdf2image.readthedocs.io/en/latest/installation.html) and [`tesseract-ocr`](https://tesseract-ocr.github.io/tessdoc/Installation.html) installed in your os to use OCR on pdf file. 
 
 If you need to generate a `requirements.txt` file, use the following command:
 ```
