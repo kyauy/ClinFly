@@ -35,6 +35,7 @@ poetry install
 ```
 
 You'll need [`poppler`](https://pdf2image.readthedocs.io/en/latest/installation.html) and [`tesseract-ocr`](https://tesseract-ocr.github.io/tessdoc/Installation.html) installed in your os to use OCR on pdf file. 
+A `Dockerfile` is provided.
 
 If you need to generate a `requirements.txt` file, use the following command:
 ```
@@ -45,7 +46,7 @@ poetry export --without-hashes --format=requirements.txt > requirements.txt
 
 ### Graphical User Interface 
 
-For single report usage with interactive analysis, ClinFly provides a web application accessible at https://huggingface.co/spaces/kyauy/ClinFly.
+For single report usage with interactive analysis, ClinFly provides a web application accessible at https://clinfly.project.erios.ai 
 
 To run the Streamlit application on your local computer, activate the poetry shell and run the `clinfly_app_st.py` file:
 ```
