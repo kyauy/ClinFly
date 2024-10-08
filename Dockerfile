@@ -26,4 +26,4 @@ EXPOSE 8501
 ENV PYTHONUNBUFFERED=1
 
 # Run the Streamlit application
-CMD ["streamlit", "run", "clinfly_app_st.py"]
+CMD ["streamlit", "run", "clinfly_app_st.py", "--server.maxUploadSize", "1"]
