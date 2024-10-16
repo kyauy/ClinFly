@@ -16,6 +16,11 @@ RUN apt-get update && \
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Download necessary models for stanza, nltk, and spacy
+RUN python -c "import stanza; stanza.download('fr', dir='/root/stanza_resources'); stanza.download('de', dir='/root/stanza_resources'); stanza.download('en', dir='/root/stanza_resources')"
+RUN python -c "import nltk; nltk.download('omw-1.4', download_dir='/root/nltk_data'); nltk.download('wordnet', download_dir='/root/nltk_data')"
+RUN python -c "import spacy; spacy.cli.download('en_core_web_lg')"
+
 # Copy the rest of the application code into the container
 COPY . /app
 
