@@ -1,10 +1,25 @@
 import pandas as pd
 from utilities.web_utilities import display_page_title, display_sidebar, stack_checker
-from utilities.anonymize import get_cities_list,get_abbreviation_dict_correction, reformat_to_report, anonymize_analyzer, anonymize_engine, add_space_to_comma_endpoint,get_list_not_deidentify, config_deidentify
+from utilities.anonymize import (
+    get_cities_list,
+    get_abbreviation_dict_correction,
+    reformat_to_report,
+    anonymize_analyzer,
+    anonymize_engine,
+    add_space_to_comma_endpoint,
+    get_list_not_deidentify,
+    config_deidentify,
+)
 from utilities.translate import get_translation_dict_correction, translate_report
-from utilities.convert import convert_df_no_header, convert_df, convert_json, convert_list_phenogenius, convert_pdf_to_text
+from utilities.convert import (
+    convert_df_no_header,
+    convert_df,
+    convert_json,
+    convert_list_phenogenius,
+    convert_pdf_to_text,
+)
 from utilities.extract_hpo import add_biometrics, extract_hpo
-from utilities.get_model import get_models, get_nlp_marian
+from utilities.get_model import get_nlp_marian  # get_models
 import streamlit as st
 import gc
 
@@ -13,7 +28,7 @@ app_title: str = "ClinFly"
 
 display_page_title(app_title)
 display_sidebar()
-        
+
 cities_list = get_cities_list()
 dict_correction = get_translation_dict_correction()
 dict_abbreviation_correction = get_abbreviation_dict_correction()
@@ -38,13 +53,14 @@ if "load_report" not in st.session_state:
 if st.session_state.load_models is False:
     with st.form("language"):
         source_lang = st.selectbox(
-            "Which is the language of the letter :fr: :es: :de: ?", ("fr", "es", "de")  # "it"
+            "Which is the language of the letter :fr: :es: :de: ?",
+            ("fr", "es", "de"),  # "it"
         )
         submit_button_L = st.form_submit_button(label="Submit language")
 
     if submit_button_L:
-        with st.spinner('Downloading models, it takes a moment, please wait'):
-            models_status = get_models(source_lang)
+        with st.spinner("Downloading models, it takes a moment, please wait"):
+            # models_status = get_models(source_lang)
             nlp_fr, marian_fr_en = get_nlp_marian(source_lang)
             st.session_state.select_lang = source_lang
             st.session_state.nlp_fr = nlp_fr
@@ -52,7 +68,7 @@ if st.session_state.load_models is False:
             st.session_state.load_models = True
 
 if st.session_state.load_models is True:
-    st.info('Selected language is : ' + st.session_state.select_lang)
+    st.info("Selected language is : " + st.session_state.select_lang)
     with st.form("my_form"):
         c1, c2 = st.columns(2)
         with c1:
@@ -133,7 +149,9 @@ if st.session_state.load_models is True:
         MarianText_anonymized_reformat_biometrics, additional_terms = add_biometrics(
             MarianText_anonymized_reformat_space, st.session_state.nlp_fr
         )
-        clinphen, clinphen_unsafe = extract_hpo(MarianText_anonymized_reformat_biometrics)
+        clinphen, clinphen_unsafe = extract_hpo(
+            MarianText_anonymized_reformat_biometrics
+        )
 
         del MarianText_anonymize_letter_engine
         del MarianText_anonymized_reformat_space
@@ -166,7 +184,9 @@ if st.session_state.load_models is True:
         clinphen_df = st.data_editor(
             clinphen_all, num_rows="dynamic", key="data_editor"
         )
-        clinphen_df_without_low_confidence = clinphen_df[clinphen_df["To keep in list"]== True]
+        clinphen_df_without_low_confidence = clinphen_df[
+            clinphen_df["To keep in list"] == True
+        ]
         del clinphen
         del clinphen_unsafe_check_raw
         gc.collect()
