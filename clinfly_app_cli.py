@@ -246,7 +246,7 @@ if __name__ == "__main__":
         os.makedirs(os.path.join(args.result_dir, "TXT"))
 
     print("Language chosen :", args.language)
-    models_status = get_models(args.language, args.model_dir)
+    # models_status = get_models(args.language, args.model_dir)
     dict_correction = get_translation_dict_correction()
     dict_abbreviation_correction = get_abbreviation_dict_correction()
     proper_noun = get_list_not_deidentify()
@@ -261,23 +261,25 @@ if __name__ == "__main__":
     Report: str
 
     if os.path.isfile(args.file):
-        with open(file_name, 'r') as fichier:
-          for ligne in fichier:
-            elements = ligne.strip().split('\t')
-            Report_id, Last_name, First_name, text_or_link = elements
-            print("Report_id:", Report_id)
-            print("Last_name:", Last_name)
-            print("First_name:", First_name)
-            if os.path.exists(text_or_link):
-                if text_or_link.lower().endswith('.pdf'):
-                    print(f"Processing PDF file: {text_or_link}")
-                    Report = convert_pdf_to_text(text_or_link)
+        with open(file_name, "r") as file:
+            for ligne in file:
+                elements = ligne.strip().split("\t")
+                Report_id, Last_name, First_name, text_or_link = elements
+                print("Report_id:", Report_id)
+                print("Last_name:", Last_name)
+                print("First_name:", First_name)
+                if os.path.exists(text_or_link):
+                    if text_or_link.lower().endswith(".pdf"):
+                        print(f"Processing PDF file: {text_or_link}")
+                        Report = convert_pdf_to_text(text_or_link)
+                    else:
+                        print(
+                            f"Unsupported file type. Please provide a link to a PDF files."
+                        )
                 else:
-                    print(f"Unsupported file type. Please provide a link to a PDF files.")
-            else:
-                Report = text_or_link
-                print("Report:", Report)
-            main()
-            print()
+                    Report = text_or_link
+                    print("Report:", Report)
+                main()
+                print()
     else:
         print("Input is not a file. Please provide a valid input.")

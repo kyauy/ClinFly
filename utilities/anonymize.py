@@ -4,15 +4,17 @@ from unidecode import unidecode
 import pandas as pd
 from presidio_anonymizer.entities import OperatorConfig
 from presidio_analyzer import AnalyzerEngine, PatternRecognizer
-from presidio_analyzer.nlp_engine import NlpEngineProvider
+from presidio_analyzer.nlp_engine import NlpEngineProvider, SpacyNlpEngine
 from presidio_anonymizer import AnonymizerEngine
 import streamlit as st
 from .web_utilities import st_cache_data_if, st_cache_resource_if, supported_cache
-
+import en_core_web_lg
 
 
 @st_cache_data_if(supported_cache, max_entries=5, ttl=3600)
-def anonymize_analyzer(MarianText_letter, _analyzer, proper_noun, Last_name, First_name):
+def anonymize_analyzer(
+    MarianText_letter, _analyzer, proper_noun, Last_name, First_name
+):
     MarianText_anonymize_letter = MarianText_letter
     # st.write(MarianText_anonymize_letter)
     analyzer_results_keep = []
@@ -232,7 +234,6 @@ def get_abbreviation_dict_correction():
     return hpo_abbreviations  # dict_correction
 
 
-
 @st_cache_data_if(supported_cache, max_entries=10, ttl=3600)
 def reformat_to_report(text, _nlp):
     cutsentence = []
@@ -305,9 +306,10 @@ def get_list_not_deidentify():
     return proper_noun
 
 
-
 @st_cache_resource_if(supported_cache, max_entries=5, ttl=3600)
-def change_name_patient_abbreviations(Report, Last_name, First_name, abbreviations_dict):
+def change_name_patient_abbreviations(
+    Report, Last_name, First_name, abbreviations_dict
+):
     Report_name = Report
 
     dict_correction_name_abbreviations = {
@@ -372,23 +374,24 @@ def change_name_patient_abbreviations(Report, Last_name, First_name, abbreviatio
 
 @st_cache_resource_if(supported_cache, max_entries=5, ttl=3600)
 def config_deidentify(cities_list):
-    configuration = {
-        "nlp_engine_name": "spacy",
-        "models": [{"lang_code": "en", "model_name": "en_core_web_lg"}],
-    }
+    class LoadedSpacyNlpEngine(SpacyNlpEngine):
+        def __init__(self, loaded_spacy_model):
+            super().__init__()
+            self.nlp = {"en": loaded_spacy_model}
 
-    # Create NLP engine based on configuration
-    provider = NlpEngineProvider(nlp_configuration=configuration)
-    nlp_engine = provider.create_engine()
+    # Load a model a-priori
+    nlp = en_core_web_lg.load()
+
+    # Pass the loaded model to the new LoadedSpacyNlpEngine
+    loaded_nlp_engine = LoadedSpacyNlpEngine(loaded_spacy_model=nlp)
+    # Create a recognizer for cities
     frcity_recognizer = PatternRecognizer(
         supported_entity="FRENCH_CITY", deny_list=cities_list
     )
 
-    analyzer = AnalyzerEngine(nlp_engine=nlp_engine, supported_languages=["en"])
+    analyzer = AnalyzerEngine(nlp_engine=loaded_nlp_engine, supported_languages=["en"])
     analyzer.registry.add_recognizer(frcity_recognizer)
     engine = AnonymizerEngine()
-    del configuration
-    del provider
-    del nlp_engine
+
     del frcity_recognizer
     return analyzer, engine

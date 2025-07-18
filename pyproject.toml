@@ -3,6 +3,7 @@ name = "ClinFly"
 version = "0.1.0"
 description = ""
 authors = ["kyauy <kevin.yauy@gmail.com>"]
+package-mode = false
 
 [tool.poetry.dependencies]
 python = ">=3.8.0,<3.12, !=3.9.7"
@@ -23,7 +24,7 @@ pydantic = "1.10.13"
 pdf2image = "^1.17.0"
 pytesseract = "^0.3.10"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pytest = "^5.2"
 
 [build-system]

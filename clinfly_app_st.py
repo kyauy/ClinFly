@@ -139,6 +139,7 @@ if st.session_state.load_models is True:
             nom + "_" + prenom + "_translated_and_deindentified_letter.txt",
             "text",
             key="download-translation-deindentification",
+            help="Please review the letter above 👆 before downloading it, as it may still remains personal informations.",
         )
 
         st.subheader("Summarization")
