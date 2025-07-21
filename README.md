@@ -23,7 +23,7 @@ By streamlining the translation and anonymization of clinical reports, ClinFly a
 
 ## Pipeline
 
-![](img/pipeline.png)
+![Pipeline image](img/pipeline.png)
 
 ## Installation
 
@@ -109,6 +109,8 @@ Using docker and the toy example:
 
 ```bash
 docker run --rm \
+  -v "$(pwd)":/app \
+  -w /app \
   clinfly:latest \
   python clinfly_app_cli.py --file data/test.tsv --language fr
 ```
